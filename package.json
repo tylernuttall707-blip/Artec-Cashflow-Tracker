@@ -1,0 +1,17 @@
+{
+  "name": "artec-cashflow-tracker",
+  "version": "1.0.0",
+  "description": "A local-first cash flow forecaster served via Express and EJS.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "ejs": "^3.1.10",
+    "express": "^4.19.2"
+  }
+}

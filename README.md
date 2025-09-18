@@ -1,16 +1,36 @@
-# Cash Flow Forecaster (Single-File)
+# Cash Flow Forecaster (Express + EJS)
 
-A local-first, single-file cash flow forecaster for 2025. Data is stored in your browser via localStorage; no servers.
+A local-first cash flow forecaster for 2025. Data stays in your browser via `localStorage`; the Node.js server simply delivers the app shell rendered with EJS.
 
-## Quick Start
-1. Open `index.html` locally to try it out.
-2. To host on GitHub Pages:
-   - Create a new repo (e.g., `cashflow-forecaster`).
-   - Upload `index.html`, `.nojekyll`, and this `README.md` to the root of the repo.
-   - In **Settings → Pages**, set **Build and deployment** to **Deploy from a branch**, choose **main** and **/(root)**, click **Save**.
-   - Your site will be live at `https://<your-username>.github.io/cashflow-forecaster/` (this build is published at [https://tylernuttall707-blip.github.io/Artec-Cashflow-Tracker/](https://tylernuttall707-blip.github.io/Artec-Cashflow-Tracker/)).
+## Prerequisites
+- [Node.js](https://nodejs.org/) 18 or newer
+- npm (bundled with Node.js)
 
-## Notes
-- Use **Export JSON** on Dashboard to back up your state; **Import JSON** to restore on any device/domain.
-- **Import CSV** supports column mapping; you can also use the embedded CSV button if present in this build.
-- Everything runs fully client-side; it’s safe to host as a static page.
+## Getting Started
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. Start the development server:
+   ```bash
+   npm start
+   ```
+3. Open [http://localhost:3000](http://localhost:3000) in your browser. All dashboard functionality (import/export, charts, tables) should match the original static build.
+
+## Project Structure
+```
+.
+├── public/
+│   ├── app.js         # Client-side logic (moved from inline script)
+│   └── styles.css     # Extracted styles from the original HTML
+├── server.js          # Express bootstrap that renders the EJS view
+├── views/
+│   └── index.ejs      # Main UI template rendered by Express
+├── package.json
+└── README.md
+```
+
+## Deployment Notes
+- The Express server only serves static assets and renders `index.ejs`; it does not maintain user data.
+- Because the dashboard persists state in `localStorage`, hosting behind any Node.js-capable platform (Render, Railway, Fly.io, etc.) works without additional configuration.
+- For static hosting, use the legacy `index.html` from earlier commits.
