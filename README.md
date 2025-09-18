@@ -8,10 +8,9 @@ A local-first, single-file cash flow forecaster for 2025. Data is stored in your
    - Create a new repo (e.g., `cashflow-forecaster`).
    - Upload `index.html`, `.nojekyll`, and this `README.md` to the root of the repo.
    - In **Settings → Pages**, set **Build and deployment** to **Deploy from a branch**, choose **main** and **/(root)**, click **Save**.
-   - Your site will be live at `https://<your-username>.github.io/cashflow-forecaster/`.
+   - Your site will be live at `https://<your-username>.github.io/cashflow-forecaster/` (this build is published at [https://tylernuttall707-blip.github.io/Artec-Cashflow-Tracker/](https://tylernuttall707-blip.github.io/Artec-Cashflow-Tracker/)).
 
 ## Notes
 - Use **Export JSON** on Dashboard to back up your state; **Import JSON** to restore on any device/domain.
 - **Import CSV** supports column mapping; you can also use the embedded CSV button if present in this build.
 - Everything runs fully client-side; it’s safe to host as a static page.
-
