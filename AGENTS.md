@@ -3,6 +3,9 @@
 ## Scope
 These instructions apply to the entire repository.
 
+## Project Context
+- This is an HTML-only website with all assets served from `index.html`.
+
 ## Development Guidelines
 - Keep all functionality accessible in `index.html`; the project currently uses a single-page architecture without a build step.
 - When modifying JavaScript embedded in the HTML, prefer clear, well-commented functions over large anonymous blocks.
