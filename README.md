@@ -3,12 +3,27 @@
 A local-first, single-file cash flow forecaster for 2025. Data is stored in your browser via localStorage; no servers.
 
 ## Quick Start
-1. Open `index.html` locally to try it out.
-2. To host on GitHub Pages:
-   - Create a new repo (e.g., `cashflow-forecaster`).
-   - Upload `index.html`, `.nojekyll`, and this `README.md` to the root of the repo.
-   - In **Settings → Pages**, set **Build and deployment** to **Deploy from a branch**, choose **main** and **/(root)**, click **Save**.
-   - Your site will be live at `https://<your-username>.github.io/cashflow-forecaster/` (this build is published at [https://tylernuttall707-blip.github.io/Artec-Cashflow-Tracker/](https://tylernuttall707-blip.github.io/Artec-Cashflow-Tracker/)).
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. Start the development server:
+   ```bash
+   npm start
+   ```
+3. Open the application at the URL printed in your terminal (defaults to `http://localhost:3000`).
+
+## Project Layout
+- `server.js` – Express entry point that serves static assets and handles any server-side routes.
+- `views/` – Server-rendered templates and partials.
+- `public/` – Static front-end assets (JavaScript, CSS, images, fonts).
+
+## Prerequisites
+- Node.js 18 LTS or newer.
+- npm scripts:
+  - `npm start` – runs the Express server in development mode.
+  - `npm run build` – builds optimized assets for production (if applicable).
+  - `npm test` – executes the project's automated test suite (if configured).
 
 ## Notes
 - Use **Export JSON** on Dashboard to back up your state; **Import JSON** to restore on any device/domain.
