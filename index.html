@@ -345,8 +345,13 @@
       }
     }
 
-    function saveState() {
+    function persistState() {
       localStorage.setItem(LS_KEY, JSON.stringify(state));
+    }
+
+    function saveState() {
+      cancelQueuedRender();
+      persistState();
       renderAll();
     }
 
@@ -424,7 +429,10 @@
       renderDailyIncome();
       renderAdjustments();
 
-      // KPIs & Chart
+      renderDashboardSummary();
+    }
+
+    function renderDashboardSummary() {
       const rows = computeDaily();
       const todayISO = toISO(new Date());
       let kToday = rows.find(r => r.date === todayISO);
@@ -521,6 +529,48 @@
       }
     }
 
+    let pendingFullRender = null;
+
+    function cancelQueuedRender() {
+      if (pendingFullRender) {
+        clearTimeout(pendingFullRender);
+        pendingFullRender = null;
+      }
+    }
+
+    function queueRenderAll() {
+      cancelQueuedRender();
+      pendingFullRender = setTimeout(() => {
+        const focusInfo = captureFocusDetails();
+        renderAll();
+        restoreFocusDetails(focusInfo);
+        pendingFullRender = null;
+      }, 120);
+    }
+
+    function captureFocusDetails() {
+      const active = document.activeElement;
+      if (!active) return null;
+      const { id, field } = active.dataset || {};
+      if (!id || !field) return null;
+      const selection = typeof active.selectionStart === 'number'
+        ? [active.selectionStart, active.selectionEnd]
+        : null;
+      return { selector: `[data-id="${id}"][data-field="${field}"]`, selection };
+    }
+
+    function restoreFocusDetails(info) {
+      if (!info) return;
+      const el = document.querySelector(info.selector);
+      if (el) {
+        el.focus();
+        if (info.selection && typeof el.setSelectionRange === 'function') {
+          const [start, end] = info.selection;
+          el.setSelectionRange(start, end);
+        }
+      }
+    }
+
     function renderChart(rows) {
       const svg = $('#balanceChart');
       const w = 800, h = 300, padL=45, padR=10, padT=10, padB=25;
@@ -605,6 +655,17 @@
       saveState();
     });
 
+    function updateOneOffFromTarget(target) {
+      const id = target?.dataset?.id;
+      const field = target?.dataset?.field;
+      if (!id || !field) return false;
+      const row = state.oneOffs.find(x => x.id === id);
+      if (!row) return false;
+      if (field === 'amount') row[field] = parseNum(target.value);
+      else row[field] = target.value;
+      return true;
+    }
+
     // One-offs add
     document.getElementById('addTx').addEventListener('click', () => {
       const d = document.getElementById('txDate').value || toISO(new Date());
@@ -617,15 +678,20 @@
       document.getElementById('txAmount').value = ''; document.getElementById('txCategory').value = ''; document.getElementById('txMemo').value = '';
     });
     // One-offs inline edits & delete
-    document.getElementById('txTable').addEventListener('input', (e) => {
-      const id = e.target.dataset.id; const field = e.target.dataset.field;
-      if (!id || !field) return;
-      const row = state.oneOffs.find(x=>x.id===id); if (!row) return;
-      if (field === 'amount') row[field] = parseNum(e.target.value);
-      else row[field] = e.target.value;
-      saveState();
+    const txTableEl = document.getElementById('txTable');
+    txTableEl.addEventListener('input', (e) => {
+      if (!updateOneOffFromTarget(e.target)) return;
+      persistState();
+      renderDashboardSummary();
+      cancelQueuedRender();
     });
-    document.getElementById('txTable').addEventListener('click', (e) => {
+    txTableEl.addEventListener('change', (e) => {
+      if (!updateOneOffFromTarget(e.target)) return;
+      persistState();
+      renderDashboardSummary();
+      queueRenderAll();
+    });
+    txTableEl.addEventListener('click', (e) => {
       const id = e.target.getAttribute('data-del'); if (!id) return;
       state.oneOffs = state.oneOffs.filter(x=>x.id!==id);
       saveState();
@@ -645,17 +711,33 @@
       saveState();
       document.getElementById('recCat').value=''; document.getElementById('recAmt').value=''; $$('.wd').forEach(x=>x.checked=false); document.getElementById('recDist').value='even'; document.getElementById('weekdayPicker').style.display='none';
     });
-    document.getElementById('recTable').addEventListener('input', (e) => {
-      const id = e.target.dataset.id; const field = e.target.dataset.field;
-      if (!id || !field) return;
-      const r = state.recurs.find(x=>x.id===id); if (!r) return;
-      if (field==='weekly') r.weekly = parseNum(e.target.value);
-      else if (field==='daysTxt') r.days = e.target.value.split(',').map(s=>parseInt(s.trim())).filter(x=>!isNaN(x));
-      else if (field==='mode') r.mode = e.target.value;
-      else r[field] = e.target.value;
-      saveState();
+    function updateRecurrenceFromTarget(target) {
+      const id = target?.dataset?.id;
+      const field = target?.dataset?.field;
+      if (!id || !field) return false;
+      const r = state.recurs.find(x => x.id === id);
+      if (!r) return false;
+      if (field === 'weekly') r.weekly = parseNum(target.value);
+      else if (field === 'daysTxt') r.days = target.value.split(',').map(s => parseInt(s.trim())).filter(x => !isNaN(x));
+      else if (field === 'mode') r.mode = target.value;
+      else r[field] = target.value;
+      return true;
+    }
+
+    const recTableEl = document.getElementById('recTable');
+    recTableEl.addEventListener('input', (e) => {
+      if (!updateRecurrenceFromTarget(e.target)) return;
+      persistState();
+      renderDashboardSummary();
+      cancelQueuedRender();
     });
-    document.getElementById('recTable').addEventListener('click', (e) => {
+    recTableEl.addEventListener('change', (e) => {
+      if (!updateRecurrenceFromTarget(e.target)) return;
+      persistState();
+      renderDashboardSummary();
+      queueRenderAll();
+    });
+    recTableEl.addEventListener('click', (e) => {
       const id = e.target.getAttribute('data-delrec'); if (!id) return;
       state.recurs = state.recurs.filter(x=>x.id!==id);
       saveState();
@@ -671,15 +753,31 @@
       saveState();
       document.getElementById('dIncAmt').value=''; document.getElementById('dIncCat').value=''; document.getElementById('dIncMemo').value='';
     });
-    document.getElementById('dIncTable').addEventListener('input', (e) => {
-      const id = e.target.dataset.id; const field = e.target.dataset.field;
-      if (!id || !field) return;
-      const r = state.dailyIncome.find(x=>x.id===id); if (!r) return;
-      if (field==='amount') r.amount = parseNum(e.target.value);
-      else r[field] = e.target.value;
-      saveState();
+    function updateDailyIncomeFromTarget(target) {
+      const id = target?.dataset?.id;
+      const field = target?.dataset?.field;
+      if (!id || !field) return false;
+      const r = state.dailyIncome.find(x => x.id === id);
+      if (!r) return false;
+      if (field === 'amount') r.amount = parseNum(target.value);
+      else r[field] = target.value;
+      return true;
+    }
+
+    const dIncTableEl = document.getElementById('dIncTable');
+    dIncTableEl.addEventListener('input', (e) => {
+      if (!updateDailyIncomeFromTarget(e.target)) return;
+      persistState();
+      renderDashboardSummary();
+      cancelQueuedRender();
     });
-    document.getElementById('dIncTable').addEventListener('click', (e) => {
+    dIncTableEl.addEventListener('change', (e) => {
+      if (!updateDailyIncomeFromTarget(e.target)) return;
+      persistState();
+      renderDashboardSummary();
+      queueRenderAll();
+    });
+    dIncTableEl.addEventListener('click', (e) => {
       const id = e.target.getAttribute('data-deldinc'); if (!id) return;
       state.dailyIncome = state.dailyIncome.filter(x=>x.id!==id);
       saveState();
@@ -694,15 +792,31 @@
       saveState();
       document.getElementById('adjAmount').value=''; document.getElementById('adjMemo').value='';
     });
-    document.getElementById('adjTable').addEventListener('input', (e) => {
-      const id = e.target.dataset.id; const field = e.target.dataset.field;
-      if (!id || !field) return;
-      const r = state.adjustments.find(x=>x.id===id); if (!r) return;
-      if (field==='amount') r.amount = parseNum(e.target.value);
-      else r[field] = e.target.value;
-      saveState();
+    function updateAdjustmentFromTarget(target) {
+      const id = target?.dataset?.id;
+      const field = target?.dataset?.field;
+      if (!id || !field) return false;
+      const r = state.adjustments.find(x => x.id === id);
+      if (!r) return false;
+      if (field === 'amount') r.amount = parseNum(target.value);
+      else r[field] = target.value;
+      return true;
+    }
+
+    const adjTableEl = document.getElementById('adjTable');
+    adjTableEl.addEventListener('input', (e) => {
+      if (!updateAdjustmentFromTarget(e.target)) return;
+      persistState();
+      renderDashboardSummary();
+      cancelQueuedRender();
     });
-    document.getElementById('adjTable').addEventListener('click', (e) => {
+    adjTableEl.addEventListener('change', (e) => {
+      if (!updateAdjustmentFromTarget(e.target)) return;
+      persistState();
+      renderDashboardSummary();
+      queueRenderAll();
+    });
+    adjTableEl.addEventListener('click', (e) => {
       const id = e.target.getAttribute('data-deladj'); if (!id) return;
       state.adjustments = state.adjustments.filter(x=>x.id!==id);
       saveState();
