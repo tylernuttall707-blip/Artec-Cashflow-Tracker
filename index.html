@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cash Flow Forecaster — 2025</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --muted: #94a3b8;
+      --text: #e5e7eb;
+      --accent: #60a5fa;
+      --accent-2: #a78bfa;
+      --danger: #ef4444;
+      --ok: #22c55e;
+      --warn: #eab308;
+      --card: #0b1220;
+      --border: #1f2937;
+      --shadow: rgba(0,0,0,0.35);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans,
+      Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 10% 5%, rgba(96,165,250,0.08), transparent 60%),
+                  radial-gradient(1000px 600px at 90% 10%, rgba(167,139,250,0.08), transparent 60%),
+                  var(--bg);
+      color: var(--text);
+    }
+    header {
+      padding: 16px 20px;
+      display: flex; align-items: center; gap: 16px; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(6px);
+      position: sticky; top: 0; z-index: 10;
+      background: linear-gradient(180deg, rgba(11,18,32,0.9), rgba(11,18,32,0.6));
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo { width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow: 0 4px 20px var(--shadow); }
+    h1 { font-size: 18px; margin: 0; letter-spacing: 0.3px; }
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tab-btn {
+      background: #0b1220;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px; border-radius: 10px;
+      cursor: pointer; transition: all 0.15s ease;
+    }
+    .tab-btn.active { background: linear-gradient(180deg, #121a2c, #0c1424); border-color: #273244; box-shadow: inset 0 0 0 1px rgba(96,165,250,0.25); }
+    main { padding: 20px; max-width: 1200px; margin: 0 auto; }
+    section.tab { display: none; }
+    section.tab.active { display: block; }
+
+    .grid { display: grid; gap: 16px; }
+    .grid.cols-3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .grid.cols-2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    @media (max-width: 900px) { .grid.cols-3 { grid-template-columns: 1fr; } }
+    @media (max-width: 700px) { .grid.cols-2 { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 8px 24px var(--shadow);
+    }
+    .card h3 { margin-top: 0; font-size: 14px; color: var(--muted); font-weight: 600; letter-spacing: 0.3px; }
+    .kpi { font-size: 28px; font-weight: 700; margin: 4px 0 2px 0; }
+    .sub { color: var(--muted); font-size: 12px; }
+
+    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    label.small { font-size: 12px; color: var(--muted); }
+    input, select, textarea {
+      background: #0b1220; color: var(--text);
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: 8px 10px; outline: none;
+    }
+    input[type="date"] { padding: 6px 10px; }
+    input[type="number"] { width: 140px; }
+    button.primary {
+      background: linear-gradient(180deg, rgba(96,165,250,0.2), rgba(96,165,250,0.1));
+      border: 1px solid rgba(96,165,250,0.35);
+      color: var(--text); border-radius: 10px; padding: 8px 12px; cursor: pointer;
+    }
+    button.ghost {
+      background: transparent; border: 1px dashed var(--border); color: var(--muted); border-radius: 10px; padding: 8px 12px; cursor: pointer;
+    }
+    button.danger { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.35); }
+    button.warn { background: rgba(234,179,8,0.15); border: 1px solid rgba(234,179,8,0.35); }
+
+    table {
+      width: 100%; border-collapse: collapse; font-size: 14px; overflow: hidden; border-radius: 10px;
+    }
+    th, td { border-bottom: 1px solid var(--border); padding: 8px 10px; text-align: left; }
+    thead th { background: #0f172a; position: sticky; top: 0; z-index: 1; }
+    tbody tr:hover { background: rgba(96,165,250,0.06); }
+    .right { text-align: right; }
+
+    .chart-wrap { height: 300px; width: 100%; }
+    .chart { width: 100%; height: 100%; }
+    .muted { color: var(--muted); }
+
+    .pill { display:inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; border: 1px solid var(--border); }
+    .income { color: var(--ok); border-color: rgba(34,197,94,0.4); }
+    .expense { color: var(--danger); border-color: rgba(239,68,68,0.4); }
+    .note { color: var(--muted); }
+
+    .spacer { height: 10px; }
+
+    .footer { color: var(--muted); font-size: 12px; text-align:center; padding: 12px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo"></div>
+      <div>
+        <h1>Cash Flow Forecaster — 2025</h1>
+        <div class="sub">Local-only • Single-file • Offline ready</div>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+      <button class="tab-btn" data-tab="expenses">Expenses / One-offs</button>
+      <button class="tab-btn" data-tab="income">Income</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- DASHBOARD -->
+    <section class="tab active" id="dashboard">
+      <div class="grid cols-3">
+        <div class="card">
+          <h3>Settings</h3>
+          <div class="row">
+            <label class="small">Start Balance</label>
+            <input id="startBalance" type="number" step="0.01" placeholder="0.00"/>
+            <label class="small">Start Date</label>
+            <input id="startDate" type="date"/>
+            <label class="small">End Date</label>
+            <input id="endDate" type="date"/>
+            <button class="primary" id="saveSettings">Save</button>
+          </div>
+          <div class="spacer"></div>
+          <div class="row">
+            <button class="ghost" id="exportJSON">Export JSON</button>
+            <input id="importJSONInput" type="file" accept="application/json" style="display:none" />
+            <button class="ghost" id="importJSON">Import JSON</button>
+            <button class="ghost" id="exportCSV">Export Daily CSV</button>
+            <input id="importCSVInput" type="file" accept=".csv,text/csv" style="display:none" />
+            <button class="ghost" id="importCSV">Import CSV</button>
+            <button class="warn" id="clearData">Reset All</button>
+          </div>
+          <div class='row'><button class='primary' id='useEmbeddedCSV'>Import the CSV you attached</button><span class='muted'>We embedded your file — map its columns after clicking.</span></div>
+        </div>
+        <div class="card">
+          <h3>Projection</h3>
+          <div class="kpi" id="kpiToday">$0</div>
+          <div class="sub">Projected balance as of today</div>
+          <div class="spacer"></div>
+          <div class="kpi" id="kpiEOY">$0</div>
+          <div class="sub">Projected balance on End Date</div>
+        </div>
+        <div class="card">
+          <h3>Totals</h3>
+          <div class="row">
+            <div>
+              <div class="kpi" id="kpiInflows">$0</div>
+              <div class="sub">Total inflows within range</div>
+            </div>
+            <div>
+              <div class="kpi" id="kpiOutflows">$0</div>
+              <div class="sub">Total outflows within range</div>
+            </div>
+          </div>
+          <div class="spacer"></div>
+          <h3>Adjustments</h3>
+          <div class="row">
+            <input id="adjDate" type="date"/>
+            <input id="adjAmount" type="number" step="0.01" placeholder="+/- amount"/>
+            <input id="adjMemo" type="text" placeholder="Memo (optional)"/>
+            <button class="primary" id="addAdj">Add</button>
+          </div>
+          <div class="spacer"></div>
+          <div style="max-height:150px; overflow:auto;">
+            <table id="adjTable">
+              <thead><tr><th>Date</th><th class="right">Amount</th><th>Memo</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="spacer"></div>
+
+      <div class="card">
+        <h3>Balance Curve</h3>
+        <div class="chart-wrap"><svg id="balanceChart" class="chart" viewBox="0 0 800 300" preserveAspectRatio="none"></svg></div>
+      </div>
+
+      <div class="spacer"></div>
+
+      <div class="card">
+        <h3>Next 60 days (net & notable)</h3>
+        <div style="max-height:260px; overflow:auto;">
+          <table id="upcomingTable">
+            <thead>
+              <tr><th>Date</th><th class="right">Inflows</th><th class="right">Outflows</th><th class="right">Net</th><th class="right">Balance</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="footer">Pro tip: everything autosaves to your browser only. No servers, no sync.</div>
+    </section>
+
+    <!-- EXPENSES / ONE-OFFS -->
+    <section class="tab" id="expenses">
+      <div class="card">
+        <h3>Add one-off item</h3>
+        <div class="row">
+          <input id="txDate" type="date"/>
+          <select id="txType">
+            <option value="expense">Expense</option>
+            <option value="income">Income (big payment)</option>
+          </select>
+          <input id="txAmount" type="number" step="0.01" placeholder="Amount"/>
+          <input id="txCategory" type="text" placeholder="Category"/>
+          <input id="txMemo" type="text" placeholder="Memo (optional)"/>
+          <button class="primary" id="addTx">Add</button>
+        </div>
+      </div>
+
+      <div class="spacer"></div>
+
+      <div class="card">
+        <h3>One-offs</h3>
+        <div style="max-height:400px; overflow:auto;">
+          <table id="txTable">
+            <thead>
+              <tr><th>Date</th><th>Type</th><th class="right">Amount</th><th>Category</th><th>Memo</th><th></th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- INCOME -->
+    <section class="tab" id="income">
+      <div class="grid cols-2">
+        <div class="card">
+          <h3>Recurring weekly income</h3>
+          <div class="row">
+            <input id="recCat" type="text" placeholder="Category (e.g., Sales A)"/>
+            <input id="recAmt" type="number" step="0.01" placeholder="Weekly Amount"/>
+            <select id="recDist">
+              <option value="even">Evenly across week</option>
+              <option value="days">On selected weekdays</option>
+            </select>
+            <div class="row" id="weekdayPicker" style="display:none">
+              <label class="small">Days:</label>
+              <label><input type="checkbox" class="wd" value="1">Mon</label>
+              <label><input type="checkbox" class="wd" value="2">Tue</label>
+              <label><input type="checkbox" class="wd" value="3">Wed</label>
+              <label><input type="checkbox" class="wd" value="4">Thu</label>
+              <label><input type="checkbox" class="wd" value="5">Fri</label>
+              <label><input type="checkbox" class="wd" value="6">Sat</label>
+              <label><input type="checkbox" class="wd" value="0">Sun</label>
+            </div>
+            <button class="primary" id="addRec">Add</button>
+          </div>
+          <div class="spacer"></div>
+          <div style="max-height:300px; overflow:auto;">
+            <table id="recTable">
+              <thead><tr><th>Category</th><th class="right">Weekly</th><th>Distribution</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Daily expected income</h3>
+          <div class="row">
+            <input id="dIncDate" type="date"/>
+            <input id="dIncAmt" type="number" step="0.01" placeholder="Amount"/>
+            <input id="dIncCat" type="text" placeholder="Category"/>
+            <input id="dIncMemo" type="text" placeholder="Memo (optional)"/>
+            <button class="primary" id="addDInc">Add</button>
+          </div>
+          <div class="spacer"></div>
+          <div style="max-height:300px; overflow:auto;">
+            <table id="dIncTable">
+              <thead><tr><th>Date</th><th class="right">Amount</th><th>Category</th><th>Memo</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Embedded CSV (base64). If present, offer one-click import with column mapping UI.
+    const EMBEDDED_CSV_B64 = "LCwsLCwsLCxEYXRlLEV4cGVuc2VzLENvbHVtbjEsLCwsLCwNCkRhdGUsUnVubmluZyB0b3RhbCwsLERhdGUsRXhwZW5zZXMsLCw3LzE2LzIwMjUsIiAkKDE0LDYzNy45NykiLEFNRVggTG9hbiBQYXltZW50LCwsLCwsDQo3LzE3LzIwMjUsICQtICAgLCwsNy8xNy8yMDI1LCIgJCgxLDI3OS4wMCkiLCwsNy8xNi8yMDI1LCIgJCgxLDAwMC4wMCkiLExFQUYgLCxFYXJuaW5ncyBQZXIgV2VlaywsLCwNCjcvMTgvMjAyNSwiICQ4Nyw2MzQuODYgIiwsLDcvMTgvMjAyNSwiICQ3OSw0OTIuMDAgIiwsLDcvMTYvMjAyNSwiICQoMSwyNzkuMDApIixTaG9waWZ5IExvYW4sLEFPUiwiICQ1MiwwMDAuMDAgIiwsLA0KNy8xOS8yMDI1LCIgJDk0LDQ5OC43MSAiLCwsNy8xOS8yMDI1LCIgJCgxLDI3OS4wMCkiLCwsNy8xNy8yMDI1LCIgJCgxLDI3OS4wMCkiLFNob3BpZnkgTG9hbiwsV0QsLCwsDQo3LzIwLzIwMjUsIiAkMTAxLDM2Mi41NyAiLCwsNy8yMC8yMDI1LCIgJCgxLDI3OS4wMCkiLCwsNy8xOC8yMDI1LCIgJDIwLDAwMC4wMCAiLENoZWNrLCxBTVcsIiAkNSwwMDAuMDAgIiwsLA0KNy8yMS8yMDI1LCIgJDE0MiwyNDguNjAgIiwsLDcvMjEvMjAyNSwiICQzMiw3NDMuMTcgIiwsLDcvMTgvMjAyNSwiICQoMSwyNzkuMDApIixTaG9waWZ5IExvYW4sLFhULCAkLSAgICwgdHJhaWxlcnMgcGVyIG1vbnRoICwwLjAsDQo3LzIyLzIwMjUsIiAkMTQ1LDMwNC43MCAiLCwsNy8yMi8yMDI1LCIgJCg1LDA4Ni43NikiLCwsNy8xOC8yMDI1LCIgJDYwLDc3MS4wMCAiLHRyYWlsZXIsLFRvdGFsLCIgJDU3LDAwMC4wMCAiLCwsDQo3LzIzLzIwMjUsIiAkMjMsMjMzLjQzICIsLCw3LzIzLzIwMjUsIiAkKDEzMCwyMTQuMTIpIiwsLDcvMTkvMjAyNSwiICQoMSwyNzkuMDApIixTaG9waWZ5IExvYW4sLCwsLCwNCjcvMjQvMjAyNSwiICQzMCwwOTcuMjkgIiwsLDcvMjQvMjAyNSwiICQoMSwyNzkuMDApIiwsLDcvMjAvMjAyNSwiICQoMSwyNzkuMDApIixTaG9waWZ5IExvYW4sLCwsQXZnIERhaWx5IGVhcm5pbmcgc2luY2UgSmFuIDEgKE5vdCBpbmNsdWRpbmcgWFQgc2FsZXMpLCwNCjcvMjUvMjAyNSwiICQzNiw5NjEuMTUgIiwsLDcvMjUvMjAyNSwiICQoMSwyNzkuMDApIiwsLDcvMjEvMjAyNSwiICQoOCwwMDAuMDApIixCeXN0cm9uaWMsLEVzdGVtYXRlZCBFYXJuaW5ncyBQZXIgRGF5LCwsLA0KNy8yNi8yMDI1LCIgJDQzLDQ0Ni40MyAiLCwsNy8yNi8yMDI1LCIgJCgxLDY1Ny41NykiLCwsNy8yMS8yMDI1LCIgJCgzLDI3NC40MCkiLHJlbnQsLCIkOCwxNDIuODYiLCwiICQxMCwxNDkuMzYgIiwsDQo3LzI3LzIwMjUsIiAkNDcsMDg2LjA0ICIsLCw3LzI3LzIwMjUsIiAkKDQsNTAzLjI1KSIsLCw3LzIxLzIwMjUsIiAkKDUsMzEyLjQzKSIscmVudCwsLCwsLA0KNy8yOC8yMDI1LCIgJDUzLDk0OS45MCAiLCwsNy8yOC8yMDI1LCIgJCgxLDI3OS4wMCkiLCwsNy8yMS8yMDI1LCIgJCgxLDI3OS4wMCkiLFNob3BpZnkgTG9hbiwsLCwsLA0KNy8yOS8yMDI1LCIgJDU1LDU1Ni41NyAiLCwsNy8yOS8yMDI1LCIgJCg2LDUzNi4xOSkiLCwsNy8yMS8yMDI1LCIgJDUwLDYwOS4wMCAiLHRyYWlsZXIsLCwsLCwNCjcvMzAvMjAyNSwiICQ1MiwxMTkuMjQgIiwsLDcvMzAvMjAyNSwiICQoMTEsNTgwLjE4KSIsLCw3LzIyLzIwMjUsICQoMjcuNTApLEFOQUxZU0lTIFNFUlZJQ0UgRkVFLCwsLCwsDQo3LzMxLzIwMjUsIiAkNDMsMjcwLjc2ICIsLCw3LzMxLzIwMjUsIiAkKDE2LDk5MS4zNCkiLCwsNy8yMi8yMDI1LCIgJCgzLDM0OC41MCkiLENhcmQgODE5MyByZW1hbmluZyBiYWxhbmNlLCwsLCwsDQo4LzEvMjAyNSwiICQxMywwNjMuMTQgIiwsLDgvMS8yMDI1LCIgJCgzOCwzNTAuNDgpIiwsLDcvMjIvMjAyNSwiICQoMSwyNzkuMDApIixTaG9waWZ5IExvYW4sLCwsLCwNCjgvMi8yMDI1LCIgJDE5LDU1NS43NCAiLCwsOC8yLzIwMjUsIiAkKDEsNjUwLjI1KSIsLCw3LzIyLzIwMjUsICQoNDMxLjc2KSxVU0FBIEF1dG8gSW5zdXJhbmNlLCwsLCwsDQo4LzMvMjAyNSwgJCg0OTcuNjApLCwsOC8zLzIwMjUsIiAkKDI4LDE5Ni4yMCkiLCwsNy8yMy8yMDI1LCIgJCg0MywyMjYuMTIpIixDYXJkIDQzOTggcmVtYW5pbmcgYmFsYW5jZSwsLCwsLA0KOC80LzIwMjUsIiAkKDksMTQ4Ljc4KSIsLCw4LzQvMjAyNSwiICQoMTYsNzk0LjA0KSIsLCw3LzIzLzIwMjUsIiAkKDg1LDAwMC4wMCkiLFBheXJvbGwsLCwsLCwNCjgvNS8yMDI1LCIgJCgxLDAwNS45MikiLCwsOC81LzIwMjUsICQtICAgLCwsNy8yMy8yMDI1LCAkKDQxOS4wMCksUm9iaW5zb24gV2FzdGUsLCwsLCwNCjgvNi8yMDI1LCIgJDcsMTM2LjkzICIsLCw4LzYvMjAyNSwgJC0gICAsLCw3LzIzLzIwMjUsICQoMjkwLjAwKSxSb2JpbnNvbiBXYXN0ZSwsLCwsLA0KOC83LzIwMjUsIiAkMTUsMDczLjcxICIsLCw4LzcvMjAyNSwgJC0gICAsLCw3LzIzLzIwMjUsIiAkKDEsMjc5LjAwKSIsU2hvcGlmeSBMb2FuLCwsLCwsDQo4LzgvMjAyNSwiICQoMjEsNzgzLjQzKSIsLCw4LzgvMjAyNSwiICQoNDUsMDAwLjAwKSIsLCw3LzI0LzIwMjUsIiAkKDEsMjc5LjAwKSIsU2hvcGlmeSBMb2FuLCwsLCwsDQo4LzkvMjAyNSwiICQoMTMsNjQwLjU4KSIsLCw4LzkvMjAyNSwgJC0gICAsLCw3LzI1LzIwMjUsIiAkKDEsMjc5LjAwKSIsU2hvcGlmeSBMb2FuLCwsLCwsDQo4LzEwLzIwMjUsIiAkKDI4LDM3Ni42MCkiLCwsOC8xMC8yMDI1LCIgJCgyMiw4NzguODgpIiwsLDcvMjYvMjAyNSwgJCgzNzguNTcpLENhcmQgMjc1MiByZW1hbmluZyBiYWxhbmNlLCwsLCwsDQo4LzExLzIwMjUsIiAkOCwyNTkuOTYgIiwsLDgvMTEvMjAyNSwiICQyOCw0OTMuNzAgIiwsLDcvMjYvMjAyNSwiICQoMSwyNzkuMDApIixTaG9waWZ5IExvYW4sLCwsLCwNCjgvMTIvMjAyNSwiICQxNiw0MDIuODIgIiwsLDgvMTIvMjAyNSwgJC0gICAsLCw3LzI3LzIwMjUsIiAkKDEsMjc5LjAwKSIsU2hvcGlmeSBMb2FuLCwsLCwsDQo4LzEzLzIwMjUsIiAkMTgsODk2Ljk5ICIsLCw4LzEzLzIwMjUsIiAkKDUsNjQ4LjY4KSIsLCw3LzI3LzIwMjUsIiAkKDMsMjI0LjI1KSIsVXBzLCwsLCwsDQo4LzE0LzIwMjUsIiAkMjcsMDM5Ljg1ICIsLCw4LzE0LzIwMjUsICQtICAgLCwsNy8yOC8yMDI1LCIgJCgxLDI3OS4wMCkiLFNob3BpZnkgTG9hbiwsLCwsLA0KOC8xNS8yMDI1LCIgJDM1LDE4Mi43MSAiLCwsOC8xNS8yMDI1LCAkLSAgICwsLDcvMjkvMjAyNSwiICQoMSwyNzkuMDApIixTaG9waWZ5IExvYW4sLCwsLCwNCjgvMTYvMjAyNSwiICQyNSw4ODYuMjUgIiwsLDgvMTYvMjAyNSwiICQoMTcsNDM5LjMxKSIsLCw3LzI5LzIwMjUsIiAkKDUsMjU3LjE5KSIsVXRhaCBUYXhlcywsLCwsLA0KOC8xNy8yMDI1LCIgJDQyLDk2Ni42NCAiLCwsOC8xNy8yMDI1LCIgJDgsOTM3LjUzICIsLCw3LzMwLzIwMjUsICQoNzEuMTgpLEVuYnJpZGdlIEdhcywsLCwsLA0KOC8xOC8yMDI1LCIgJDQzLDEwOS41MCAiLCwsOC8xOC8yMDI1LCIgJCg4LDAwMC4wMCkiLCwsNy8zMC8yMDI1LCIgJCgyLDIwMC4wMCkiLFBhY2lmaWMgUG93ZXIsLCwsLCwNCjgvMTkvMjAyNSwiICQ1MSwyNTIuMzYgIiwsLDgvMTkvMjAyNSwgJC0gICAsLCw3LzMwLzIwMjUsIiAkKDgsMDAwLjAwKSIsUnllcnNvbiwsLCwsLA0KOC8yMC8yMDI1LCIgJCgyNSw2MDQuNzkpIiwsLDgvMjAvMjAyNSwiICQoODUsMDAwLjAwKSIsLCw3LzMwLzIwMjUsIiAkKDEsMjc5LjAwKSIsU2hvcGlmeSBMb2FuLCwsLCwsDQo4LzIxLzIwMjUsIiAkKDE3LDQ2MS45MykiLCwsOC8yMS8yMDI1LCAkLSAgICwsLDcvMzAvMjAyNSwgJCgxNS4wMCksWmlvbnMgMjEzMiBTZXJ2aWNlIENoYXJnZSwsLCwsLA0KOC8yMi8yMDI1LCIgJCg2MCw3NzguMzMpIiwsLDgvMjIvMjAyNSwiICQoNTEsNDU5LjI2KSIsLCw3LzMwLzIwMjUsICQoMTUuMDApLFppb25zIDQ2MTQgU2VydmljZSBDaGFyZ2UsLCwsLCwNCjgvMjMvMjAyNSwiICQoOTAsODQ0LjQ4KSIsLCw4LzIzLzIwMjUsIiAkKDM4LDIwOS4wMCkiLCwsNy8zMS8yMDI1LCIgJCg4LDAwMC4wMCkiLEJ5c3Ryb25pYywsLCwsLA0KOC8yNC8yMDI1LCIgJCg4Miw3MDEuNjIpIiwsLDgvMjQvMjAyNSwgJC0gICAsLCw3LzMxLzIwMjUsIiAkKDcsNzEyLjM0KSIsUGFja3NpemUsLCwsLCwNCjgvMjUvMjAyNSwiICQoODIsNTU4Ljc2KSIsLCw4LzI1LzIwMjUsIiAkKDgsMDAwLjAwKSIsLCw3LzMxLzIwMjUsIiAkKDEsMjc5LjAwKSIsU2hvcGlmeSBMb2FuLCwsLCwsDQo4LzI2LzIwMjUsIiAkKDkyLDg4Mi4yOCkiLCwsOC8yNi8yMDI1LCIgJCgxOCw0NjYuMzgpIiwsLDcvMzEvMjAyNSwgJC0gICAsdHJhaWxlciwsLCwsLA0KOC8yNy8yMDI1LCIgJCg4NCw3MzkuNDMpIiwsLDgvMjcvMjAyNSwgJC0gICAsLCw4LzEvMjAyNSwiICQoMTQsMDAyLjcyKSIsNTg1IFNob3AgUmVudCwsLCwsLA0KOC8yOC8yMDI1LCIgJCg3Niw1OTYuNTcpIiwsLDgvMjgvMjAyNSwgJC0gICAsLCw4LzEvMjAyNSwiICQoNiwzMDYuMDApIixPbGQgU2Vjb25kLCwsLCwsDQo4LzI5LzIwMjUsIiAkKDY4LDQ1My43MSkiLCwsOC8yOS8yMDI1LCAkLSAgICwsLDgvMS8yMDI1LCIgJCgzLDI3NC40MCkiLFImRCBTaG9wIFJlbnQsLCwsLCwNCjgvMzAvMjAyNSwiICQoNjIsNjIxLjEzKSIsLCw4LzMwLzIwMjUsIiAkKDIsMzEwLjI3KSIsLCw4LzEvMjAyNSwiICQoNSw0ODguMzYpIixTaGlwcGluZyBTaG9wIFJlbnQsLCwsLCwNCjgvMzEvMjAyNSwiICQoNjIsMTkxLjYxKSIsLCw4LzMxLzIwMjUsIiAkKDcsNzEzLjM0KSIsLCw4LzEvMjAyNSwiICQoMSwyNzkuMDApIixTaG9waWZ5IExvYW4sLCwsLCwNCjkvMS8yMDI1LCIgJDEwOSwxMTkuMDcgIiwsLDkvMS8yMDI1LCIgJCgzNywwNzEuNDgpIiwsLDgvMS8yMDI1LCIgJCgxLDEwMC4wMCkiLFdlbGRpbmcgU2hvcCBSZW50LCwsLCwsDQo5LzIvMjAyNSwiICQxMTYsODkwLjY4ICIsLCw5LzIvMjAyNSwgJCgzNzEuMjUpLCwsOC8xLzIwMjUsIiAkKDYsOTAwLjAwKSIsWFQgU2hvcCBSZW50LCwsLCwsDQo5LzMvMjAyNSwiICQ0MCwwMzMuNTMgIiwsLDkvMy8yMDI1LCIgJCg4NSwwMDAuMDApIiwsLDgvMi8yMDI1LCIgJCgxLDI3OS4wMCkiLFNob3BpZnkgTG9hbiwsLCwsLA0KOS80LzIwMjUsIiAkMzIsMDAwLjAwICIsLCw5LzQvMjAyNSwgJC0gICAsLCw4LzIvMjAyNSwgJCgzNzEuMjUpLFRoZSBTdGFuZGFyZCBJbnN1cmFuY2UsLCwsLCwNCjkvNS8yMDI1LCIgJDQwLDE0Mi44NiAiLCwsOS81LzIwMjUsICQtICAgLCwsOC8zLzIwMjUsIiAkKDI4LDE5Ni4yMCkiLENhcmQgNTEwMDkgcmVtYW5pbmcgYmFsYW5jZSwsLCwsLA0KOS82LzIwMjUsIiAkNDgsMjg1LjcxICIsLCw5LzYvMjAyNSwgJC0gICAsLCw4LzQvMjAyNSwiICQoMTMsMDAwLjAwKSIsU1laLCwsLCwsDQo5LzcvMjAyNSwiICQ1Niw0MjguNTcgIiwsLDkvNy8yMDI1LCAkLSAgICwsLDgvNC8yMDI1LCIgJCgzLDc5NC4wNCkiLFVwcywsLCwsLA0KOS84LzIwMjUsIiAkMzYsNTcxLjQzICIsLCw5LzgvMjAyNSwiICQoMjgsMDAwLjAwKSIsLCw4LzgvMjAyNSwiICQoNDUsMDAwLjAwKSIsUGF5cm9sbCwsLCwsLA0KOS85LzIwMjUsIiAkOTQsNzE0LjI5ICIsLCw5LzkvMjAyNSwiICQ1MCwwMDAuMDAgIiwsLDgvMTAvMjAyNSwiICQoMjIsODc4Ljg4KSIsQ2FyZCA1NjQxIHJlbWFuaW5nIGJhbGFuY2UsLCwsLCwNCjkvMTAvMjAyNSwiICQxMjksNTUyLjkyICIsLCw5LzEwLzIwMjUsIiAkMjYsNjk1Ljc4ICIsLCw4LzExLzIwMjUsIiAkKDM0LDUwMC4wMCkiLENhcmQgNTEwMDEgcmVtYW5pbmcgYmFsYW5jZSwsLCwsLA0KOS8xMS8yMDI1LCIgJDcwLDM2Ny40MSAiLCwsOS8xMS8yMDI1LCIgJCg2NywzMjguMzcpIiwsLDgvMTEvMjAyNSwiICQoMSwwMDYuMzApIixMZXh1cyBQYXltZW50LCwsLCwsDQo5LzEyLzIwMjUsIiAkNzgsNTEwLjI3ICIsLCw5LzEyLzIwMjUsICQtICAgLCwsOC8xMS8yMDI1LCIgJCg0MCwwMDAuMDApIixQYXlyb2xsIFB0LiAyICwsLCwsLA0KOS8xMy8yMDI1LCIgJDgxLDAwNC40NCAiLCwsOS8xMy8yMDI1LCIgJCg1LDY0OC42OCkiLCwsOC8xMS8yMDI1LCIgJDUyLDAwMC4wMCAiLFRyYWlsZXIsLCwsLCwNCjkvMTQvMjAyNSwiICQ4OSwxNDcuMzAgIiwsLDkvMTQvMjAyNSwgJC0gICAsLCw4LzExLzIwMjUsIiAkNTIsMDAwLjAwICIsdHJhaWxlciwsLCwsLA0KOS8xNS8yMDI1LCIgJDgwLDg1MC44OSAiLCwsOS8xNS8yMDI1LCIgJCgxNiw0MzkuMjcpIiwsLDgvMTMvMjAyNSwiICQoNCwzNDAuMDApIixBdmFsYXJhLCwsLCwsDQo5LzE2LzIwMjUsIiAkODcsOTkzLjc1ICIsLCw5LzE2LzIwMjUsIiAkKDEsMDAwLjAwKSIsLCw4LzEzLzIwMjUsIiAkKDEsMzA4LjY4KSIsU3RlbGxhbnRpcywsLCwsLA0KOS8xNy8yMDI1LCIgJDE2LDEzNi42MCAiLCwsOS8xNy8yMDI1LCIgJCg4MCwwMDAuMDApIiwsLDgvMTYvMjAyNSwiICQoMTYsNDM5LjMxKSIsQU1FWCBMb2FuIFBheW1lbnQsLCwsLCwNCjkvMTgvMjAyNSwiICQxNiwyNzkuNDYgIiwsLDkvMTgvMjAyNSwiICQoOCwwMDAuMDApIiwsLDgvMTYvMjAyNSwiICQoMSwwMDAuMDApIixMRUFGICwsLCwsLA0KOS8xOS8yMDI1LCIgJDI0LDQyMi4zMiAiLCwsOS8xOS8yMDI1LCAkLSAgICwsLDgvMTcvMjAyNSwiICQ4LDkzNy41MyAiLFppb24gQ3JlZGl0IENhcmQgUGF5bWVudCwsLCwsLA0KOS8yMC8yMDI1LCIgJDMyLDU2NS4xNyAiLCwsOS8yMC8yMDI1LCAkLSAgICwsLDgvMTgvMjAyNSwiICQoOCwwMDAuMDApIixCeXN0cm9uaWMsLCwsLCwNCjkvMjEvMjAyNSwiICQ0MCw3MDguMDMgIiwsLDkvMjEvMjAyNSwgJC0gICAsLCw4LzIwLzIwMjUsIiAkKDg1LDAwMC4wMCkiLFBheXJvbGwsLCwsLCwNCjkvMjIvMjAyNSwiICQzMyw3NzYuMDcgIiwsLDkvMjIvMjAyNSwiICQoMTUsMDc0LjgyKSIsLCw4LzIyLzIwMjUsICQoMjcuNTApLEFOQUxZU0lTIFNFUlZJQ0UgRkVFLCwsLCwsDQo5LzIzLzIwMjUsIiAkKDgsMzI0LjUyKSIsLCw5LzIzLzIwMjUsIiAkKDUwLDI0My40NSkiLCwsOC8yMi8yMDI1LCIgJCg1MSwwMDAuMDApIixDYXJkIDgxOTMgcmVtYW5pbmcgYmFsYW5jZSwsLCwsLA0KOS8yNC8yMDI1LCIgJDQ5LDgxOC4zMyAiLCwsOS8yNC8yMDI1LCIgJDUwLDAwMC4wMCAiLCwsOC8yMi8yMDI1LCAkKDQzMS43NiksVVNBQSBBdXRvIEluc3VyYW5jZSwsLCwsLA0KOS8yNS8yMDI1LCIgJDM3LDkyNS4xOSAiLCwsOS8yNS8yMDI1LCIgJCgyMCwwMzYuMDApIiwsLDgvMjMvMjAyNSwiICQoMzcsNTAwLjAwKSIsQ2FyZCA0Mzk4IHJlbWFuaW5nIGJhbGFuY2UsLCwsLCwNCjkvMjYvMjAyNSwiICQzMSw2NjguMDUgIiwsLDkvMjYvMjAyNSwiICQoMTQsNDAwLjAwKSIsLCw4LzIzLzIwMjUsICQoNDE5LjAwKSxSb2JpbnNvbiBXYXN0ZSwsLCwsLA0KOS8yNy8yMDI1LCIgJDM5LDgxMC45MCAiLCwsOS8yNy8yMDI1LCAkLSAgICwsLDgvMjMvMjAyNSwgJCgyOTAuMDApLFJvYmluc29uIFdhc3RlLCwsLCwsDQo5LzI4LzIwMjUsIiAkNDcsOTUzLjc2ICIsLCw5LzI4LzIwMjUsICQtICAgLCwsOC8yNS8yMDI1LCIgJCg4LDAwMC4wMCkiLFJ5ZXJzb24sLCwsLCwNCjkvMjkvMjAyNSwiICQ1NiwwOTYuNjIgIiwsLDkvMjkvMjAyNSwgJC0gICAsLCw4LzI2LzIwMjUsIiAkKDE4LDQ2Ni4zOCkiLENhcmQgMjc1MiByZW1hbmluZyBiYWxhbmNlLCwsLCwsDQo5LzMwLzIwMjUsIiAkNTQsMjI0LjAyICIsLCw5LzMwLzIwMjUsIiAkKDEwLDAxNS40NikiLCwsOC8zMC8yMDI1LCAkKDgwLjI3KSxFbmJyaWRnZSBHYXMsLCwsLCwNCjEwLzEvMjAyNSwiICQoNTQsNzA0LjYxKSIsLCwxMC8xLzIwMjUsIiAkKDExNywwNzEuNDgpIiwsLDgvMzAvMjAyNSwiICQoMiwyMDAuMDApIixQYWNpZmljIFBvd2VyLCwsLCwsDQoxMC8yLzIwMjUsIiAkKDQ2LDkzMy4wMCkiLCwsMTAvMi8yMDI1LCAkKDM3MS4yNSksLCw4LzMwLzIwMjUsICQoMTUuMDApLFppb25zIDIxMzIgU2VydmljZSBDaGFyZ2UsLCwsLCwNCjEwLzMvMjAyNSwiICQoNjYsNzkwLjE0KSIsLCwxMC8zLzIwMjUsIiAkKDI4LDAwMC4wMCkiLCwsOC8zMC8yMDI1LCAkKDE1LjAwKSxaaW9ucyA0NjE0IFNlcnZpY2UgQ2hhcmdlLCwsLCwsDQoxMC80LzIwMjUsIiAkKDU4LDY0Ny4yOSkiLCwsMTAvNC8yMDI1LCAkLSAgICwsLDgvMzEvMjAyNSwiICQoNyw3MTMuMzQpIixQYWNrc2l6ZSwsLCwsLA0KMTAvNS8yMDI1LCIgJCg1MCw1MDQuNDMpIiwsLDEwLzUvMjAyNSwgJC0gICAsLCw5LzEvMjAyNSwiICQoMTQsMDAyLjcyKSIsNTg1IFNob3AgUmVudCwsLCwsLA0KMTAvNi8yMDI1LCIgJCg0MiwzNjEuNTcpIiwsLDEwLzYvMjAyNSwgJC0gICAsLCw5LzEvMjAyNSwiICQoNiwzMDYuMDApIixPbGQgU2Vjb25kLCwsLCwsDQoxMC83LzIwMjUsIiAkKDM0LDIxOC43MSkiLCwsMTAvNy8yMDI1LCAkLSAgICwsLDkvMS8yMDI1LCIgJCgzLDI3NC40MCkiLFImRCBTaG9wIFJlbnQsLCwsLCwNCjEwLzgvMjAyNSwiICQoMjYsMDc1Ljg2KSIsLCwxMC84LzIwMjUsICQtICAgLCwsOS8xLzIwMjUsIiAkKDUsNDg4LjM2KSIsU2hpcHBpbmcgU2hvcCBSZW50LCwsLCwsDQoxMC85LzIwMjUsIiAkKDE3LDkzMy4wMCkiLCwsMTAvOS8yMDI1LCAkLSAgICwsLDkvMS8yMDI1LCIgJCgxLDEwMC4wMCkiLFdlbGRpbmcgU2hvcCBSZW50LCwsLCwsDQoxMC8xMC8yMDI1LCIgJDIxLDgwOS44NiAiLCwsMTAvMTAvMjAyNSwiICQzMSw2MDAuMDAgIiwsLDkvMS8yMDI1LCIgJCg2LDkwMC4wMCkiLFhUIFNob3AgUmVudCwsLCwsLA0KMTAvMTEvMjAyNSwiICQoNSw1NTMuNTkpIiwsLDEwLzExLzIwMjUsIiAkKDM1LDUwNi4zMCkiLCwsOS8yLzIwMjUsICQoMzcxLjI1KSxUaGUgU3RhbmRhcmQgSW5zdXJhbmNlLCwsLCwsDQoxMC8xMi8yMDI1LCIgJDIsNTg5LjI3ICIsLCwxMC8xMi8yMDI1LCAkLSAgICwsLDkvMy8yMDI1LCIgJCg4NSwwMDAuMDApIixQYXlyb2xsLCwsLCwsDQoxMC8xMy8yMDI1LCIgJDUsMDgzLjQ1ICIsLCwxMC8xMy8yMDI1LCIgJCg1LDY0OC42OCkiLCwsOS84LzIwMjUsIiAkKDI4LDAwMC4wMCkiLENhcmQgNTEwMDkgcmVtYW5pbmcgYmFsYW5jZSwsLCwsLA0KMTAvMTQvMjAyNSwiICQxMywyMjYuMzEgIiwsLDEwLzE0LzIwMjUsICQtICAgLCwsOS85LzIwMjUsIiAkNTAsMDAwLjAwICIsdHJhaWxlciwsLCwsLA0KMTAvMTUvMjAyNSwiICQoNTgsNjMwLjg0KSIsLCwxMC8xNS8yMDI1LCIgJCg4MCwwMDAuMDApIiwsLDkvMTAvMjAyNSwiICQoMjMsMzA0LjIyKSIsQ2FyZCA1NjQxIHJlbWFuaW5nIGJhbGFuY2UsLCwsLCwNCjEwLzE2LzIwMjUsIiAkKDUxLDQ4Ny45OCkiLCwsMTAvMTYvMjAyNSwiICQoMSwwMDAuMDApIiwsLDkvMTAvMjAyNSwiICQ1MCwwMDAuMDAgIix0cmFpbGVyLCwsLCwsDQoxMC8xNy8yMDI1LCIgJCg1LDM2Ny43NikiLCwsMTAvMTcvMjAyNSwiICQzNyw5NzcuMzYgIiwsLDkvMTEvMjAyNSwiICQoNjYsMzIyLjA3KSIsQ2FyZCA1MTAwMSByZW1hbmluZyBiYWxhbmNlLCwsLCwsDQoxMC8xOC8yMDI1LCIgJCg1LDIyNC45MSkiLCwsMTAvMTgvMjAyNSwiICQoOCwwMDAuMDApIiwsLDkvMTEvMjAyNSwiICQoMSwwMDYuMzApIixMZXh1cyBQYXltZW50LCwsLCwsDQoxMC8xOS8yMDI1LCIgJDIsOTE3Ljk1ICIsLCwxMC8xOS8yMDI1LCAkLSAgICwsLDkvMTMvMjAyNSwiICQoNCwzNDAuMDApIixBdmFsYXJhLCwsLCwsDQoxMC8yMC8yMDI1LCIgJDExLDA2MC44MSAiLCwsMTAvMjAvMjAyNSwgJC0gICAsLCw5LzEzLzIwMjUsIiAkKDEsMzA4LjY4KSIsU3RlbGxhbnRpcywsLCwsLA0KMTAvMjEvMjAyNSwiICQxOSwyMDMuNjcgIiwsLDEwLzIxLzIwMjUsICQtICAgLCwsOS8xNS8yMDI1LCIgJCgxNiw0MzkuMjcpIixBTUVYIExvYW4gUGF5bWVudCwsLCwsLA0KMTAvMjIvMjAyNSwiICQoMjEsMDEyLjc0KSIsLCwxMC8yMi8yMDI1LCIgJCg0OCwzNTkuMjYpIiwsLDkvMTYvMjAyNSwiICQoMSwwMDAuMDApIixMRUFGICwsLCwsLA0KMTAvMjMvMjAyNSwiICQoNTEsMDc4Ljg4KSIsLCwxMC8yMy8yMDI1LCIgJCgzOCwyMDkuMDApIiwsLDkvMTcvMjAyNSwiICQoODAsMDAwLjAwKSIsUGF5cm9sbCwsLCwsLA0KMTAvMjQvMjAyNSwiICQ3LDA2My45OCAiLCwsMTAvMjQvMjAyNSwiICQ1MCwwMDAuMDAgIiwsLDkvMTgvMjAyNSwiICQoOCwwMDAuMDApIixCeXN0cm9uaWMsLCwsLCwNCjEwLzI1LzIwMjUsIiAkKDQsODI5LjE3KSIsLCwxMC8yNS8yMDI1LCIgJCgyMCwwMzYuMDApIiwsLDkvMjIvMjAyNSwgJCgyNy41MCksQU5BTFlTSVMgU0VSVklDRSBGRUUsLCwsLCwNCjEwLzI2LzIwMjUsIiAkKDExLDA4Ni4zMSkiLCwsMTAvMjYvMjAyNSwiICQoMTQsNDAwLjAwKSIsLCw5LzIyLzIwMjUsIiAkKDE0LDYxNS41NikiLENhcmQgODE5MyByZW1hbmluZyBiYWxhbmNlLCwsLCwsDQoxMC8yNy8yMDI1LCIgJCgyLDk0My40NSkiLCwsMTAvMjcvMjAyNSwgJC0gICAsLCw5LzIyLzIwMjUsICQoNDMxLjc2KSxVU0FBIEF1dG8gSW5zdXJhbmNlLCwsLCwsDQoxMC8yOC8yMDI1LCIgJDUsMTk5LjQxICIsLCwxMC8yOC8yMDI1LCAkLSAgICwsLDkvMjMvMjAyNSwiICQoNDksNTM0LjQ1KSIsQ2FyZCA0Mzk4IHJlbWFuaW5nIGJhbGFuY2UsLCwsLCwNCjEwLzI5LzIwMjUsIiAkKDY2LDY1Ny43NCkiLCwsMTAvMjkvMjAyNSwiICQoODAsMDAwLjAwKSIsLCw5LzIzLzIwMjUsICQoNDE5LjAwKSxSb2JpbnNvbiBXYXN0ZSwsLCwsLA0KMTAvMzAvMjAyNSwiICQoNjAsODI3Ljc1KSIsLCwxMC8zMC8yMDI1LCIgJCgyLDMxMi44NykiLCwsOS8yMy8yMDI1LCAkKDI5MC4wMCksUm9iaW5zb24gV2FzdGUsLCwsLCwNCjEwLzMxLzIwMjUsIiAkKDIsNjg0Ljg5KSIsLCwxMC8zMS8yMDI1LCIgJDUwLDAwMC4wMCAiLCwsOS8yNC8yMDI1LCIgJDUwLDAwMC4wMCAiLHRyYWlsZXIsLCwsLCwNCjExLzEvMjAyNSwiICQoMzEsNjEzLjUyKSIsLCwxMS8xLzIwMjUsIiAkKDM3LDA3MS40OCkiLCwsOS8yNS8yMDI1LCIgJCg4LDAwMC4wMCkiLFJ5ZXJzb24sLCwsLCwNCjExLzIvMjAyNSwiICQoMjMsODQxLjkxKSIsLCwxMS8yLzIwMjUsICQoMzcxLjI1KSwsLDkvMjUvMjAyNSwiICQoMTIsMDM2LjAwKSIsVGhlIEhhcnRmb3JkLCwsLCwsDQoxMS8zLzIwMjUsIiAkKDQzLDY5OS4wNSkiLCwsMTEvMy8yMDI1LCIgJCgyOCwwMDAuMDApIiwsLDkvMjYvMjAyNSwiICQoMTQsNDAwLjAwKSIsQ2FyZCAyNzUyIHJlbWFuaW5nIGJhbGFuY2UsLCwsLCwNCjExLzQvMjAyNSwiICQoMzUsNTU2LjE5KSIsLCwxMS80LzIwMjUsICQtICAgLCwsOS8zMC8yMDI1LCAkKDcxLjEyKSxFbmJyaWRnZSBHYXMsLCwsLCwNCjExLzUvMjAyNSwiICQoMjcsNDEzLjM0KSIsLCwxMS81LzIwMjUsICQtICAgLCwsOS8zMC8yMDI1LCIgJCgyLDIwMC4wMCkiLFBhY2lmaWMgUG93ZXIsLCwsLCwNCjExLzYvMjAyNSwiICQoMTksMjcwLjQ4KSIsLCwxMS82LzIwMjUsICQtICAgLCwsOS8zMC8yMDI1LCIgJCg3LDcxNC4zNCkiLFBhY2tzaXplLCwsLCwsDQoxMS83LzIwMjUsIiAkMzgsODcyLjM4ICIsLCwxMS83LzIwMjUsIiAkNTAsMDAwLjAwICIsLCw5LzMwLzIwMjUsICQoMTUuMDApLFppb25zIDIxMzIgU2VydmljZSBDaGFyZ2UsLCwsLCwNCjExLzgvMjAyNSwiICQ0NywwMTUuMjMgIiwsLDExLzgvMjAyNSwgJC0gICAsLCw5LzMwLzIwMjUsICQoMTUuMDApLFppb25zIDQ2MTQgU2VydmljZSBDaGFyZ2UsLCwsLCwNCjExLzkvMjAyNSwiICQ1NSwxNTguMDkgIiwsLDExLzkvMjAyNSwgJC0gICAsLCwxMC8xLzIwMjUsIiAkKDE0LDAwMi43MikiLDU4NSBTaG9wIFJlbnQsLCwsLCwNCjExLzEwLzIwMjUsIiAkNDQsOTAwLjk1ICIsLCwxMS8xMC8yMDI1LCIgJCgxOCw0MDAuMDApIiwsLDEwLzEvMjAyNSwiICQoNiwzMDYuMDApIixPbGQgU2Vjb25kLCwsLCwsDQoxMS8xMS8yMDI1LCIgJDE4LDU0My44MSAiLCwsMTEvMTEvMjAyNSwiICQoMzQsNTAwLjAwKSIsLCwxMC8xLzIwMjUsIiAkKDgwLDAwMC4wMCkiLFBheXJvbGwsLCwsLCwNCjExLzEyLzIwMjUsIiAkKDUzLDMxMy4zNCkiLCwsMTEvMTIvMjAyNSwiICQoODAsMDAwLjAwKSIsLCwxMC8xLzIwMjUsIiAkKDMsMjc0LjQwKSIsUiZEIFNob3AgUmVudCwsLCwsLA0KMTEvMTMvMjAyNSwiICQoNTAsODE5LjE2KSIsLCwxMS8xMy8yMDI1LCIgJCg1LDY0OC42OCkiLCwsMTAvMS8yMDI1LCIgJCg1LDQ4OC4zNikiLFNoaXBwaW5nIFNob3AgUmVudCwsLCwsLA0KMTEvMTQvMjAyNSwiICQ3LDMyMy43MCAiLCwsMTEvMTQvMjAyNSwiICQ1MCwwMDAuMDAgIiwsLDEwLzEvMjAyNSwiICQoMSwxMDAuMDApIixXZWxkaW5nIFNob3AgUmVudCwsLCwsLA0KMTEvMTUvMjAyNSwiICQxNSw0NjYuNTUgIiwsLDExLzE1LzIwMjUsICQtICAgLCwsMTAvMS8yMDI1LCIgJCg2LDkwMC4wMCkiLFhUIFNob3AgUmVudCwsLCwsLA0KMTEvMTYvMjAyNSwiICQxMCw1ODcuMDEgIiwsLDExLzE2LzIwMjUsIiAkKDEzLDAyMi40MCkiLCwsMTAvMi8yMDI1LCAkKDM3MS4yNSksVGhlIFN0YW5kYXJkIEluc3VyYW5jZSwsLCwsLA0KMTEvMTcvMjAyNSwiICQxOCw3MjkuODcgIiwsLDExLzE3LzIwMjUsICQtICAgLCwsMTAvMy8yMDI1LCIgJCgyOCwwMDAuMDApIixDYXJkIDUxMDA5IHJlbWFuaW5nIGJhbGFuY2UsLCwsLCwNCjExLzE4LzIwMjUsIiAkMTgsODcyLjczICIsLCwxMS8xOC8yMDI1LCIgJCg4LDAwMC4wMCkiLCwsMTAvMTAvMjAyNSwiICQoMTgsNDAwLjAwKSIsQ2FyZCA1NjQxIHJlbWFuaW5nIGJhbGFuY2UsLCwsLCwNCjExLzE5LzIwMjUsIiAkMjcsMDE1LjU4ICIsLCwxMS8xOS8yMDI1LCAkLSAgICwsLDEwLzEwLzIwMjUsIiAkNTAsMDAwLjAwICIsdHJhaWxlciwsLCwsLA0KMTEvMjAvMjAyNSwiICQzNSwxNTguNDQgIiwsLDExLzIwLzIwMjUsICQtICAgLCwsMTAvMTEvMjAyNSwiICQoMzQsNTAwLjAwKSIsQ2FyZCA1MTAwMSByZW1hbmluZyBiYWxhbmNlLCwsLCwsDQoxMS8yMS8yMDI1LCIgJDkzLDMwMS4zMCAiLCwsMTEvMjEvMjAyNSwiICQ1MCwwMDAuMDAgIiwsLDEwLzExLzIwMjUsIiAkKDEsMDA2LjMwKSIsTGV4dXMgUGF5bWVudCwsLCwsLA0KMTEvMjIvMjAyNSwiICQ1MywwODQuODkgIiwsLDExLzIyLzIwMjUsIiAkKDQ4LDM1OS4yNikiLCwsMTAvMTMvMjAyNSwiICQoNCwzNDAuMDApIixBdmFsYXJhLCwsLCwsDQoxMS8yMy8yMDI1LCIgJDIzLDAxOC43NSAiLCwsMTEvMjMvMjAyNSwiICQoMzgsMjA5LjAwKSIsLCwxMC8xMy8yMDI1LCIgJCgxLDMwOC42OCkiLFN0ZWxsYW50aXMsLCwsLCwNCjExLzI0LzIwMjUsIiAkMzEsMTYxLjYxICIsLCwxMS8yNC8yMDI1LCAkLSAgICwsLDEwLzE1LzIwMjUsIiAkKDgwLDAwMC4wMCkiLFBheXJvbGwsLCwsLCwNCjExLzI1LzIwMjUsIiAkMjEsNjc1Ljc3ICIsLCwxMS8yNS8yMDI1LCIgJCgxNyw2MjguNzApIiwsLDEwLzE2LzIwMjUsIiAkKDEsMDAwLjAwKSIsTEVBRiAsLCwsLCwNCjExLzI2LzIwMjUsIiAkKDY0LDU4MS4zOCkiLCwsMTEvMjYvMjAyNSwiICQoOTQsNDAwLjAwKSIsLCwxMC8xNy8yMDI1LCIgJCgxMiwwMjIuNjQpIixBTUVYIExvYW4gUGF5bWVudCwsLCwsLA0KMTEvMjcvMjAyNSwiICQoNTYsNDM4LjUyKSIsLCwxMS8yNy8yMDI1LCAkLSAgICwsLDEwLzE3LzIwMjUsIiAkNTAsMDAwLjAwICIsdHJhaWxlciwsLCwsLA0KMTEvMjgvMjAyNSwiICQxLDcwNC4zNCAiLCwsMTEvMjgvMjAyNSwiICQ1MCwwMDAuMDAgIiwsLDEwLzE4LzIwMjUsIiAkKDgsMDAwLjAwKSIsQnlzdHJvbmljLCwsLCwsDQoxMS8yOS8yMDI1LCIgJDksODQ3LjE5ICIsLCwxMS8yOS8yMDI1LCAkLSAgICwsLDEwLzIyLzIwMjUsICQoMjcuNTApLEFOQUxZU0lTIFNFUlZJQ0UgRkVFLCwsLCwsDQoxMS8zMC8yMDI1LCIgJDE1LDIyNi4xNiAiLCwsMTEvMzAvMjAyNSwiICQoMiw3NjMuODkpIiwsLDEwLzIyLzIwMjUsIiAkKDQ3LDkwMC4wMCkiLENhcmQgODE5MyByZW1hbmluZyBiYWxhbmNlLCwsLCwsDQoxMi8xLzIwMjUsIiAkKDEzLDcwMi40NikiLCwsMTIvMS8yMDI1LCIgJCgzNywwNzEuNDgpIiwsLDEwLzIyLzIwMjUsICQoNDMxLjc2KSxVU0FBIEF1dG8gSW5zdXJhbmNlLCwsLCwsDQoxMi8yLzIwMjUsIiAkKDUsOTMwLjg1KSIsLCwxMi8yLzIwMjUsICQoMzcxLjI1KSwsLDEwLzIzLzIwMjUsIiAkKDM3LDUwMC4wMCkiLENhcmQgNDM5OCByZW1hbmluZyBiYWxhbmNlLCwsLCwsDQoxMi8zLzIwMjUsIiAkKDI1LDc4OC4wMCkiLCwsMTIvMy8yMDI1LCIgJCgyOCwwMDAuMDApIiwsLDEwLzIzLzIwMjUsICQoNDE5LjAwKSxSb2JpbnNvbiBXYXN0ZSwsLCwsLA0KMTIvNC8yMDI1LCIgJCgxNyw2NDUuMTQpIiwsLDEyLzQvMjAyNSwgJC0gICAsLCwxMC8yMy8yMDI1LCAkKDI5MC4wMCksUm9iaW5zb24gV2FzdGUsLCwsLCwNCjEyLzUvMjAyNSwiICQ0MCw0OTcuNzIgIiwsLDEyLzUvMjAyNSwiICQ1MCwwMDAuMDAgIiwsLDEwLzI0LzIwMjUsIiAkNTAsMDAwLjAwICIsdHJhaWxlciwsLCwsLA0KMTIvNi8yMDI1LCIgJDQ4LDY0MC41NyAiLCwsMTIvNi8yMDI1LCAkLSAgICwsLDEwLzI1LzIwMjUsIiAkKDgsMDAwLjAwKSIsUnllcnNvbiwsLCwsLA0KMTIvNy8yMDI1LCIgJDU2LDc4My40MyAiLCwsMTIvNy8yMDI1LCAkLSAgICwsLDEwLzI1LzIwMjUsIiAkKDEyLDAzNi4wMCkiLFRoZSBIYXJ0Zm9yZCwsLCwsLA0KMTIvOC8yMDI1LCIgJDY0LDkyNi4yOSAiLCwsMTIvOC8yMDI1LCAkLSAgICwsLDEwLzI2LzIwMjUsIiAkKDE0LDQwMC4wMCkiLENhcmQgMjc1MiByZW1hbmluZyBiYWxhbmNlLCwsLCwsDQoxMi85LzIwMjUsIiAkNzMsMDY5LjE1ICIsLCwxMi85LzIwMjUsICQtICAgLCwsMTAvMjkvMjAyNSwiICQoODAsMDAwLjAwKSIsUGF5cm9sbCwsLCwsLA0KMTIvMTAvMjAyNSwiICQoMTcsMTg4LjAwKSIsLCwxMi8xMC8yMDI1LCIgJCg5OCw0MDAuMDApIiwsLDEwLzMwLzIwMjUsICQoODIuODcpLEVuYnJpZGdlIEdhcywsLCwsLA0KMTIvMTEvMjAyNSwiICQoNDMsNTQ1LjE0KSIsLCwxMi8xMS8yMDI1LCIgJCgzNCw1MDAuMDApIiwsLDEwLzMwLzIwMjUsIiAkKDIsMjAwLjAwKSIsUGFjaWZpYyBQb3dlciwsLCwsLA0KMTIvMTIvMjAyNSwiICQxNCw1OTcuNzIgIiwsLDEyLzEyLzIwMjUsIiAkNTAsMDAwLjAwICIsLCwxMC8zMC8yMDI1LCAkKDE1LjAwKSxaaW9ucyAyMTMyIFNlcnZpY2UgQ2hhcmdlLCwsLCwsDQoxMi8xMy8yMDI1LCIgJDE3LDA5MS44OSAiLCwsMTIvMTMvMjAyNSwiICQoNSw2NDguNjgpIiwsLDEwLzMwLzIwMjUsICQoMTUuMDApLFppb25zIDQ2MTQgU2VydmljZSBDaGFyZ2UsLCwsLCwNCjEyLzE0LzIwMjUsIiAkMjUsMjM0Ljc1ICIsLCwxMi8xNC8yMDI1LCAkLSAgICwsLDEwLzMxLzIwMjUsIiAkNTAsMDAwLjAwICIsdHJhaWxlciwsLCwsLA0KMTIvMTUvMjAyNSwiICQzMywzNzcuNjEgIiwsLDEyLzE1LzIwMjUsICQtICAgLCwsMTEvMS8yMDI1LCIgJCgxNCwwMDIuNzIpIiw1ODUgU2hvcCBSZW50LCwsLCwsDQoxMi8xNi8yMDI1LCIgJDQwLDUyMC40NyAiLCwsMTIvMTYvMjAyNSwiICQoMSwwMDAuMDApIiwsLDExLzEvMjAyNSwiICQoNiwzMDYuMDApIixPbGQgU2Vjb25kLCwsLCwsDQoxMi8xNy8yMDI1LCIgJDQwLDA2MC4xNCAiLCwsMTIvMTcvMjAyNSwiICQoOCw2MDMuMTgpIiwsLDExLzEvMjAyNSwiICQoMywyNzQuNDApIixSJkQgU2hvcCBSZW50LCwsLCwsDQoxMi8xOC8yMDI1LCIgJDQwLDIwMy4wMCAiLCwsMTIvMTgvMjAyNSwiICQoOCwwMDAuMDApIiwsLDExLzEvMjAyNSwiICQoNSw0ODguMzYpIixTaGlwcGluZyBTaG9wIFJlbnQsLCwsLCwNCjEyLzE5LzIwMjUsIiAkOTgsMzQ1Ljg2ICIsLCwxMi8xOS8yMDI1LCIgJDUwLDAwMC4wMCAiLCwsMTEvMS8yMDI1LCIgJCgxLDEwMC4wMCkiLFdlbGRpbmcgU2hvcCBSZW50LCwsLCwsDQoxMi8yMC8yMDI1LCIgJDEwNiw0ODguNzEgIiwsLDEyLzIwLzIwMjUsICQtICAgLCwsMTEvMS8yMDI1LCIgJCg2LDkwMC4wMCkiLFhUIFNob3AgUmVudCwsLCwsLA0KMTIvMjEvMjAyNSwiICQxMTQsNjMxLjU3ICIsLCwxMi8yMS8yMDI1LCAkLSAgICwsLDExLzIvMjAyNSwgJCgzNzEuMjUpLFRoZSBTdGFuZGFyZCBJbnN1cmFuY2UsLCwsLCwNCjEyLzIyLzIwMjUsIiAkNzQsNDE1LjE3ICIsLCwxMi8yMi8yMDI1LCIgJCg0OCwzNTkuMjYpIiwsLDExLzMvMjAyNSwiICQoMjgsMDAwLjAwKSIsQ2FyZCA1MTAwOSByZW1hbmluZyBiYWxhbmNlLCwsLCwsDQoxMi8yMy8yMDI1LCIgJDQ0LDM0OS4wMyAiLCwsMTIvMjMvMjAyNSwiICQoMzgsMjA5LjAwKSIsLCwxMS83LzIwMjUsIiAkNTAsMDAwLjAwICIsdHJhaWxlciwsLCwsLA0KMTIvMjQvMjAyNSwiICQoMjcsNTA4LjEyKSIsLCwxMi8yNC8yMDI1LCIgJCg4MCwwMDAuMDApIiwsLDExLzEwLzIwMjUsIiAkKDE4LDQwMC4wMCkiLENhcmQgNTY0MSByZW1hbmluZyBiYWxhbmNlLCwsLCwsDQoxMi8yNS8yMDI1LCIgJCgzMSw0MDEuMjYpIiwsLDEyLzI1LzIwMjUsIiAkKDEyLDAzNi4wMCkiLCwsMTEvMTEvMjAyNSwiICQoMzQsNTAwLjAwKSIsQ2FyZCA1MTAwMSByZW1hbmluZyBiYWxhbmNlLCwsLCwsDQoxMi8yNi8yMDI1LCIgJCgzNyw2NTguNDApIiwsLDEyLzI2LzIwMjUsIiAkKDE0LDQwMC4wMCkiLCwsMTEvMTIvMjAyNSwiICQoODAsMDAwLjAwKSIsUGF5cm9sbCwsLCwsLA0KMTIvMjcvMjAyNSwiICQoMjksNTE1LjU1KSIsLCwxMi8yNy8yMDI1LCAkLSAgICwsLDExLzEzLzIwMjUsIiAkKDQsMzQwLjAwKSIsQXZhbGFyYSwsLCwsLA0KMTIvMjgvMjAyNSwiICQoMjEsMzcyLjY5KSIsLCwxMi8yOC8yMDI1LCAkLSAgICwsLDExLzEzLzIwMjUsIiAkKDEsMzA4LjY4KSIsU3RlbGxhbnRpcywsLCwsLA0KMTIvMjkvMjAyNSwiICQoMTMsMjI5LjgzKSIsLCwxMi8yOS8yMDI1LCAkLSAgICwsLDExLzE0LzIwMjUsIiAkNTAsMDAwLjAwICIsdHJhaWxlciwsLCwsLA0KMTIvMzAvMjAyNSwiICQoOSw0NDUuNzEpIiwsLDEyLzMwLzIwMjUsIiAkKDQsMzU4Ljc0KSIsLCwxMS8xNi8yMDI1LCIgJCgxMiwwMjIuNDApIixBTUVYIExvYW4gUGF5bWVudCwsLCwsLA0KMTIvMzEvMjAyNSwiICQoMSwzMDIuODYpIiwsLDEyLzMxLzIwMjUsICQtICAgLCwsMTEvMTYvMjAyNSwiICQoMSwwMDAuMDApIixMRUFGICwsLCwsLA0KLCwsLCwsLCwxMS8xOC8yMDI1LCIgJCg4LDAwMC4wMCkiLEJ5c3Ryb25pYywsLCwsLA0KLCwsLCwsLCwxMS8yMS8yMDI1LCIgJDUwLDAwMC4wMCAiLHRyYWlsZXIsLCwsLCwNCiwsLCwsLCwsMTEvMjIvMjAyNSwgJCgyNy41MCksQU5BTFlTSVMgU0VSVklDRSBGRUUsLCwsLCwNCiwsLCwsLCwsMTEvMjIvMjAyNSwiICQoNDcsOTAwLjAwKSIsQ2FyZCA4MTkzIHJlbWFuaW5nIGJhbGFuY2UsLCwsLCwNCiwsLCwsLCwsMTEvMjIvMjAyNSwgJCg0MzEuNzYpLFVTQUEgQXV0byBJbnN1cmFuY2UsLCwsLCwNCiwsLCwsLCwsMTEvMjMvMjAyNSwiICQoMzcsNTAwLjAwKSIsQ2FyZCA0Mzk4IHJlbWFuaW5nIGJhbGFuY2UsLCwsLCwNCiwsLCwsLCwsMTEvMjMvMjAyNSwgJCg0MTkuMDApLFJvYmluc29uIFdhc3RlLCwsLCwsDQosLCwsLCwsLDExLzIzLzIwMjUsICQoMjkwLjAwKSxSb2JpbnNvbiBXYXN0ZSwsLCwsLA0KLCwsLCwsLCwxMS8yNS8yMDI1LCIgJCg1LDU5Mi43MCkiLFJ5ZXJzb24sLCwsLCwNCiwsLCwsLCwsMTEvMjUvMjAyNSwiICQoMTIsMDM2LjAwKSIsVGhlIEhhcnRmb3JkLCwsLCwsDQosLCwsLCwsLDExLzI2LzIwMjUsIiAkKDE0LDQwMC4wMCkiLENhcmQgMjc1MiByZW1hbmluZyBiYWxhbmNlLCwsLCwsDQosLCwsLCwsLDExLzI2LzIwMjUsIiAkKDgwLDAwMC4wMCkiLFBheXJvbGwsLCwsLCwNCiwsLCwsLCwsMTEvMjgvMjAyNSwiICQ1MCwwMDAuMDAgIix0cmFpbGVyLCwsLCwsDQosLCwsLCwsLDExLzMwLzIwMjUsICQoNTMzLjg5KSxFbmJyaWRnZSBHYXMsLCwsLCwNCiwsLCwsLCwsMTEvMzAvMjAyNSwiICQoMiwyMDAuMDApIixQYWNpZmljIFBvd2VyLCwsLCwsDQosLCwsLCwsLDExLzMwLzIwMjUsICQoMTUuMDApLFppb25zIDIxMzIgU2VydmljZSBDaGFyZ2UsLCwsLCwNCiwsLCwsLCwsMTEvMzAvMjAyNSwgJCgxNS4wMCksWmlvbnMgNDYxNCBTZXJ2aWNlIENoYXJnZSwsLCwsLA0KLCwsLCwsLCwxMi8xLzIwMjUsIiAkKDE0LDAwMi43MikiLDU4NSBTaG9wIFJlbnQsLCwsLCwNCiwsLCwsLCwsMTIvMS8yMDI1LCIgJCg2LDMwNi4wMCkiLE9sZCBTZWNvbmQsLCwsLCwNCiwsLCwsLCwsMTIvMS8yMDI1LCIgJCgzLDI3NC40MCkiLFImRCBTaG9wIFJlbnQsLCwsLCwNCiwsLCwsLCwsMTIvMS8yMDI1LCIgJCg1LDQ4OC4zNikiLFNoaXBwaW5nIFNob3AgUmVudCwsLCwsLA0KLCwsLCwsLCwxMi8xLzIwMjUsIiAkKDEsMTAwLjAwKSIsV2VsZGluZyBTaG9wIFJlbnQsLCwsLCwNCiwsLCwsLCwsMTIvMS8yMDI1LCIgJCg2LDkwMC4wMCkiLFhUIFNob3AgUmVudCwsLCwsLA0KLCwsLCwsLCwxMi8yLzIwMjUsICQoMzcxLjI1KSxUaGUgU3RhbmRhcmQgSW5zdXJhbmNlLCwsLCwsDQosLCwsLCwsLDEyLzMvMjAyNSwiICQoMjgsMDAwLjAwKSIsQ2FyZCA1MTAwOSByZW1hbmluZyBiYWxhbmNlLCwsLCwsDQosLCwsLCwsLDEyLzUvMjAyNSwiICQ1MCwwMDAuMDAgIix0cmFpbGVyLCwsLCwsDQosLCwsLCwsLDEyLzEwLzIwMjUsIiAkKDE4LDQwMC4wMCkiLENhcmQgNTY0MSByZW1hbmluZyBiYWxhbmNlLCwsLCwsDQosLCwsLCwsLDEyLzEwLzIwMjUsIiAkKDgwLDAwMC4wMCkiLFBheXJvbGwsLCwsLCwNCiwsLCwsLCwsMTIvMTEvMjAyNSwiICQoMzQsNTAwLjAwKSIsQ2FyZCA1MTAwMSByZW1hbmluZyBiYWxhbmNlLCwsLCwsDQosLCwsLCwsLDEyLzEyLzIwMjUsIiAkNTAsMDAwLjAwICIsdHJhaWxlciwsLCwsLA0KLCwsLCwsLCwxMi8xMy8yMDI1LCIgJCg0LDM0MC4wMCkiLEF2YWxhcmEsLCwsLCwNCiwsLCwsLCwsMTIvMTMvMjAyNSwiICQoMSwzMDguNjgpIixTdGVsbGFudGlzLCwsLCwsDQosLCwsLCwsLDEyLzE2LzIwMjUsIiAkKDEsMDAwLjAwKSIsTEVBRiAsLCwsLCwNCiwsLCwsLCwsMTIvMTcvMjAyNSwiICQoOCw2MDMuMTgpIixBTUVYIExvYW4gUGF5bWVudCwsLCwsLA0KLCwsLCwsLCwxMi8xOC8yMDI1LCIgJCg4LDAwMC4wMCkiLEJ5c3Ryb25pYywsLCwsLA0KLCwsLCwsLCwxMi8xOS8yMDI1LCIgJDUwLDAwMC4wMCAiLHRyYWlsZXIsLCwsLCwNCiwsLCwsLCwsMTIvMjIvMjAyNSwgJCgyNy41MCksQU5BTFlTSVMgU0VSVklDRSBGRUUsLCwsLCwNCiwsLCwsLCwsMTIvMjIvMjAyNSwiICQoNDcsOTAwLjAwKSIsQ2FyZCA4MTkzIHJlbWFuaW5nIGJhbGFuY2UsLCwsLCwNCiwsLCwsLCwsMTIvMjIvMjAyNSwgJCg0MzEuNzYpLFVTQUEgQXV0byBJbnN1cmFuY2UsLCwsLCwNCiwsLCwsLCwsMTIvMjMvMjAyNSwiICQoMzcsNTAwLjAwKSIsQ2FyZCA0Mzk4IHJlbWFuaW5nIGJhbGFuY2UsLCwsLCwNCiwsLCwsLCwsMTIvMjMvMjAyNSwgJCg0MTkuMDApLFJvYmluc29uIFdhc3RlLCwsLCwsDQosLCwsLCwsLDEyLzIzLzIwMjUsICQoMjkwLjAwKSxSb2JpbnNvbiBXYXN0ZSwsLCwsLA0KLCwsLCwsLCwxMi8yNC8yMDI1LCIgJCg4MCwwMDAuMDApIixQYXlyb2xsLCwsLCwsDQosLCwsLCwsLDEyLzI1LzIwMjUsIiAkKDEyLDAzNi4wMCkiLFRoZSBIYXJ0Zm9yZCwsLCwsLA0KLCwsLCwsLCwxMi8yNi8yMDI1LCIgJCgxNCw0MDAuMDApIixDYXJkIDI3NTIgcmVtYW5pbmcgYmFsYW5jZSwsLCwsLA0KLCwsLCwsLCwxMi8zMC8yMDI1LCIgJCgyLDEyOC43NCkiLEVuYnJpZGdlIEdhcywsLCwsLA0KLCwsLCwsLCwxMi8zMC8yMDI1LCIgJCgyLDIwMC4wMCkiLFBhY2lmaWMgUG93ZXIsLCwsLCwNCiwsLCwsLCwsMTIvMzAvMjAyNSwgJCgxNS4wMCksWmlvbnMgMjEzMiBTZXJ2aWNlIENoYXJnZSwsLCwsLA0KLCwsLCwsLCwxMi8zMC8yMDI1LCAkKDE1LjAwKSxaaW9ucyA0NjE0IFNlcnZpY2UgQ2hhcmdlLCwsLCwsDQo=";
+
+    // --- Utilities ---
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+    const fmt = (n) => { if (isNaN(n)) return "$0"; const s = n.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}); return (n < 0 ? "-$" + Math.abs(n).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) : "$" + s); };
+    const parseNum = (v) => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
+    const toISO = (d) => new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+    const clamp = (val, lo, hi) => Math.max(lo, Math.min(hi, val));
+
+    const LS_KEY = "cashflow_v1";
+
+    const defaultState = {
+      settings: { startBalance: 0, startDate: "2025-09-18", endDate: "2025-12-31" },
+      oneOffs: [],        // {date, type:'expense'|'income', amount, category, memo, id}
+      recurs: [],         // {category, weekly, mode:'even'|'days', days:[0..6], id}
+      dailyIncome: [],    // {date, amount, category, memo, id}
+      adjustments: []     // {date, amount, memo, id}
+    };
+
+    let state = loadState();
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(LS_KEY);
+        if (!raw) return structuredClone(defaultState);
+        const obj = JSON.parse(raw);
+        // ensure all keys exist
+        obj.settings = Object.assign(structuredClone(defaultState.settings), obj.settings||{});
+        obj.oneOffs = obj.oneOffs||[];
+        obj.recurs = obj.recurs||[];
+        obj.dailyIncome = obj.dailyIncome||[];
+        obj.adjustments = obj.adjustments||[];
+        return obj;
+      } catch (e) {
+        console.error("Failed to load state", e);
+        return structuredClone(defaultState);
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(LS_KEY, JSON.stringify(state));
+      renderAll();
+    }
+
+    // --- Date helpers ---
+    function* dateRange(aISO, bISO) {
+      const a = new Date(aISO + "T00:00:00");
+      const b = new Date(bISO + "T00:00:00");
+      for (let d = new Date(a); d <= b; d.setDate(d.getDate()+1)) {
+        yield toISO(d);
+      }
+    }
+    function weekday(iso) { return new Date(iso + "T00:00:00").getDay(); } // 0=Sun..6=Sat
+
+    // --- Calculations ---
+    function computeDaily() {
+      const start = state.settings.startDate;
+      const end = state.settings.endDate;
+      const days = Array.from(dateRange(start, end));
+      const inflow = Object.create(null);
+      const outflow = Object.create(null);
+      for (const d of days) { inflow[d] = 0; outflow[d] = 0; }
+
+      // Recurring weekly income
+      for (const r of state.recurs) {
+        if (r.mode === 'even') {
+          const perDay = r.weekly / 7.0;
+          for (const d of days) inflow[d] += perDay;
+        } else if (r.mode === 'days' && r.days && r.days.length) {
+          const per = r.weekly / r.days.length;
+          for (const d of days) { if (r.days.includes(weekday(d))) inflow[d] += per; }
+        }
+      }
+
+      // Daily expected income (specific dates)
+      for (const di of state.dailyIncome) {
+        if (di.date >= start && di.date <= end) inflow[di.date] += di.amount;
+      }
+
+      // One-offs
+      for (const t of state.oneOffs) {
+        if (t.date >= start && t.date <= end) {
+          if (t.type === 'income') inflow[t.date] += t.amount;
+          else outflow[t.date] += t.amount;
+        }
+      }
+
+      // Adjustments
+      for (const a of state.adjustments) {
+        if (a.date >= start && a.date <= end) {
+          if (a.amount >= 0) inflow[a.date] += a.amount; else outflow[a.date] += Math.abs(a.amount);
+        }
+      }
+
+      // Running balance
+      const rows = [];
+      let bal = parseNum(state.settings.startBalance);
+      for (const d of days) {
+        const inn = inflow[d]||0, out = outflow[d]||0;
+        bal += (inn - out);
+        rows.push({ date: d, inflow: inn, outflow: out, net: inn - out, balance: bal });
+      }
+      return rows;
+    }
+
+    // --- Rendering ---
+    function renderAll() {
+      // Settings
+      $('#startBalance').value = state.settings.startBalance;
+      $('#startDate').value = state.settings.startDate;
+      $('#endDate').value = state.settings.endDate;
+
+      // Tables
+      renderOneOffs();
+      renderRecurs();
+      renderDailyIncome();
+      renderAdjustments();
+
+      // KPIs & Chart
+      const rows = computeDaily();
+      const todayISO = toISO(new Date());
+      let kToday = rows.find(r => r.date === todayISO);
+      if (!kToday) kToday = rows[rows.length-1];
+      $('#kpiToday').textContent = fmt(kToday?.balance || state.settings.startBalance);
+      $('#kpiEOY').textContent = fmt(rows[rows.length-1]?.balance || state.settings.startBalance);
+
+      const totals = rows.reduce((acc, r) => (acc.in += r.inflow, acc.out += r.outflow, acc), {in:0, out:0});
+      $('#kpiInflows').textContent = fmt(totals.in);
+      $('#kpiOutflows').textContent = fmt(totals.out);
+
+      renderChart(rows);
+      renderUpcoming(rows);
+    }
+
+    function renderOneOffs() {
+      const tbody = $('#txTable tbody'); tbody.innerHTML = "";
+      for (const t of state.oneOffs.sort((a,b)=> a.date.localeCompare(b.date))) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = ''
+          + '<td><input type="date" value="'+t.date+'" data-id="'+t.id+'" data-field="date"/></td>'
+          + '<td><select data-id="'+t.id+'" data-field="type">'
+          +   '<option value="expense" '+(t.type==='expense'?'selected':'')+'>Expense</option>'
+          +   '<option value="income" '+(t.type==='income'?'selected':'')+'>Income</option>'
+          + '</select></td>'
+          + '<td class="right"><input type="number" step="0.01" value="'+t.amount+'" data-id="'+t.id+'" data-field="amount" style="width:120px; text-align:right"/></td>'
+          + '<td><input type="text" value="'+(t.category||'')+'" data-id="'+t.id+'" data-field="category"/></td>'
+          + '<td><input type="text" value="'+(t.memo||'')+'" data-id="'+t.id+'" data-field="memo"/></td>'
+          + '<td class="right"><button class="danger" data-del="'+t.id+'">Delete</button></td>';
+        tbody.appendChild(tr);
+      }
+    }
+
+    function renderRecurs() {
+      const tbody = $('#recTable tbody'); tbody.innerHTML = "";
+      for (const r of state.recurs) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = ''
+          + '<td><input type="text" value="'+r.category+'" data-id="'+r.id+'" data-field="category"/></td>'
+          + '<td class="right"><input type="number" step="0.01" value="'+r.weekly+'" data-id="'+r.id+'" data-field="weekly" style="width:120px; text-align:right"/></td>'
+          + '<td>'
+          +   '<select data-id="'+r.id+'" data-field="mode">'
+          +     '<option value="even" '+(r.mode==='even'?'selected':'')+'>Even</option>'
+          +     '<option value="days" '+(r.mode==='days'?'selected':'')+'>Selected days</option>'
+          +   '</select>'
+          +   '<input type="text" placeholder="e.g., 1,2,3 (Mon=1)" value="'+((r.days||[]).join(','))+'" data-id="'+r.id+'" data-field="daysTxt" style="width:140px; margin-left:8px"/>'
+          + '</td>'
+          + '<td class="right"><button class="danger" data-delrec="'+r.id+'">Delete</button></td>';
+        tbody.appendChild(tr);
+      }
+    }
+
+    function renderDailyIncome() {
+      const tbody = $('#dIncTable tbody'); tbody.innerHTML = "";
+      for (const di of state.dailyIncome.sort((a,b)=> a.date.localeCompare(b.date))) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = ''
+          + '<td><input type="date" value="'+di.date+'" data-id="'+di.id+'" data-field="date"/></td>'
+          + '<td class="right"><input type="number" step="0.01" value="'+di.amount+'" data-id="'+di.id+'" data-field="amount" style="width:120px; text-align:right"/></td>'
+          + '<td><input type="text" value="'+(di.category||'')+'" data-id="'+di.id+'" data-field="category"/></td>'
+          + '<td><input type="text" value="'+(di.memo||'')+'" data-id="'+di.id+'" data-field="memo"/></td>'
+          + '<td class="right"><button class="danger" data-deldinc="'+di.id+'">Delete</button></td>';
+        tbody.appendChild(tr);
+      }
+    }
+
+    function renderAdjustments() {
+      const tbody = $('#adjTable tbody'); tbody.innerHTML = "";
+      for (const a of state.adjustments.sort((a,b)=> a.date.localeCompare(b.date))) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = ''
+          + '<td><input type="date" value="'+a.date+'" data-id="'+a.id+'" data-field="date"/></td>'
+          + '<td class="right"><input type="number" step="0.01" value="'+a.amount+'" data-id="'+a.id+'" data-field="amount" style="width:120px; text-align:right"/></td>'
+          + '<td><input type="text" value="'+(a.memo||'')+'" data-id="'+a.id+'" data-field="memo"/></td>'
+          + '<td class="right"><button class="danger" data-deladj="'+a.id+'">Delete</button></td>';
+        tbody.appendChild(tr);
+      }
+    }
+
+    function renderUpcoming(rows) {
+      const tbody = $('#upcomingTable tbody'); tbody.innerHTML = "";
+      const todayISO = toISO(new Date());
+      const endDate = toISO(new Date(new Date(todayISO).getTime() + 60*86400000));
+      const view = rows.filter(r => r.date >= todayISO && r.date <= endDate);
+      for (const r of view) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<td>'+r.date+'</td>'
+                     + '<td class="right">'+fmt(r.inflow)+'</td>'
+                     + '<td class="right">'+fmt(r.outflow)+'</td>'
+                     + '<td class="right">'+fmt(r.net)+'</td>'
+                     + '<td class="right">'+fmt(r.balance)+'</td>';
+        tbody.appendChild(tr);
+      }
+    }
+
+    function renderChart(rows) {
+      const svg = $('#balanceChart');
+      const w = 800, h = 300, padL=45, padR=10, padT=10, padB=25;
+      svg.setAttribute('viewBox', '0 0 '+w+' '+h);
+      svg.innerHTML = "";
+      if (!rows.length) return;
+
+      const xs = rows.map((_,i)=> i);
+      const ys = rows.map(r=> r.balance);
+
+      const xMin = 0, xMax = xs.length-1;
+      const yMin = Math.min(...ys), yMax = Math.max(...ys);
+      const yPad = (yMax - yMin) * 0.1 || 100;
+      const YMIN = Math.floor((yMin - yPad)/100)*100;
+      const YMAX = Math.ceil((yMax + yPad)/100)*100;
+
+      const xScale = (i) => padL + (i - xMin) * (w - padL - padR) / Math.max(1, (xMax - xMin));
+      const yScale = (v) => h - padB - (v - YMIN) * (h - padT - padB) / Math.max(1, (YMAX - YMIN));
+
+      // grid lines & axes
+      const grid = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      grid.setAttribute("stroke", "rgba(255,255,255,0.08)");
+      grid.setAttribute("stroke-width", "1");
+      const axis = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      axis.setAttribute("fill", "rgba(255,255,255,0.6)");
+      axis.setAttribute("font-size", "10");
+
+      const steps = 4;
+      for (let i=0; i<=steps; i++) {
+        const yv = YMIN + i*(YMAX-YMIN)/steps;
+        const y = yScale(yv);
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", padL); line.setAttribute("x2", w-padR);
+        line.setAttribute("y1", y); line.setAttribute("y2", y);
+        grid.appendChild(line);
+
+        const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        label.setAttribute("x", 6); label.setAttribute("y", y+3);
+        label.textContent = fmt(yv);
+        axis.appendChild(label);
+      }
+
+      svg.appendChild(grid); svg.appendChild(axis);
+
+      // line path
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      let d = "";
+      rows.forEach((r, i) => {
+        const x = xScale(i), y = yScale(r.balance);
+        d += (i===0 ? "M" : "L") + x + " " + y + " ";
+      });
+      path.setAttribute("d", d.trim());
+      path.setAttribute("fill", "none");
+      path.setAttribute("stroke", "url(#grad1)");
+      path.setAttribute("stroke-width", "2");
+
+      // gradient
+      const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+      const grad = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
+      grad.setAttribute("id", "grad1");
+      grad.setAttribute("x1", "0"); grad.setAttribute("x2", "1"); grad.setAttribute("y1", "0"); grad.setAttribute("y2", "0");
+      const stop1 = document.createElementNS("http://www.w3.org/2000/svg", "stop"); stop1.setAttribute("offset", "0%"); stop1.setAttribute("stop-color", "#60a5fa");
+      const stop2 = document.createElementNS("http://www.w3.org/2000/svg", "stop"); stop2.setAttribute("offset", "100%"); stop2.setAttribute("stop-color", "#a78bfa");
+      grad.appendChild(stop1); grad.appendChild(stop2);
+      defs.appendChild(grad);
+      svg.appendChild(defs);
+      svg.appendChild(path);
+    }
+
+    // --- Events ---
+    $$('.tab-btn').forEach(btn => btn.addEventListener('click', () => {
+      $$('.tab-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      $$('.tab').forEach(s=>s.classList.remove('active'));
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    }));
+
+    document.getElementById('saveSettings').addEventListener('click', () => {
+      state.settings.startBalance = parseNum(document.getElementById('startBalance').value);
+      state.settings.startDate = document.getElementById('startDate').value || state.settings.startDate;
+      state.settings.endDate = document.getElementById('endDate').value || state.settings.endDate;
+      saveState();
+    });
+
+    // One-offs add
+    document.getElementById('addTx').addEventListener('click', () => {
+      const d = document.getElementById('txDate').value || toISO(new Date());
+      const t = document.getElementById('txType').value;
+      const a = parseNum(document.getElementById('txAmount').value);
+      const c = document.getElementById('txCategory').value.trim();
+      const m = document.getElementById('txMemo').value.trim();
+      state.oneOffs.push({ id: crypto.randomUUID(), date: d, type: t, amount: Math.abs(a), category: c, memo: m });
+      saveState();
+      document.getElementById('txAmount').value = ''; document.getElementById('txCategory').value = ''; document.getElementById('txMemo').value = '';
+    });
+    // One-offs inline edits & delete
+    document.getElementById('txTable').addEventListener('input', (e) => {
+      const id = e.target.dataset.id; const field = e.target.dataset.field;
+      if (!id || !field) return;
+      const row = state.oneOffs.find(x=>x.id===id); if (!row) return;
+      if (field === 'amount') row[field] = parseNum(e.target.value);
+      else row[field] = e.target.value;
+      saveState();
+    });
+    document.getElementById('txTable').addEventListener('click', (e) => {
+      const id = e.target.getAttribute('data-del'); if (!id) return;
+      state.oneOffs = state.oneOffs.filter(x=>x.id!==id);
+      saveState();
+    });
+
+    // Recurring
+    document.getElementById('recDist').addEventListener('change', () => {
+      document.getElementById('weekdayPicker').style.display = document.getElementById('recDist').value === 'days' ? '' : 'none';
+    });
+    document.getElementById('addRec').addEventListener('click', () => {
+      const cat = document.getElementById('recCat').value.trim();
+      const amt = parseNum(document.getElementById('recAmt').value);
+      const mode = document.getElementById('recDist').value;
+      let days = [];
+      if (mode==='days') days = $$('.wd:checked').map(x=>parseInt(x.value));
+      state.recurs.push({ id: crypto.randomUUID(), category: cat||'Income', weekly: Math.abs(amt), mode, days });
+      saveState();
+      document.getElementById('recCat').value=''; document.getElementById('recAmt').value=''; $$('.wd').forEach(x=>x.checked=false); document.getElementById('recDist').value='even'; document.getElementById('weekdayPicker').style.display='none';
+    });
+    document.getElementById('recTable').addEventListener('input', (e) => {
+      const id = e.target.dataset.id; const field = e.target.dataset.field;
+      if (!id || !field) return;
+      const r = state.recurs.find(x=>x.id===id); if (!r) return;
+      if (field==='weekly') r.weekly = parseNum(e.target.value);
+      else if (field==='daysTxt') r.days = e.target.value.split(',').map(s=>parseInt(s.trim())).filter(x=>!isNaN(x));
+      else if (field==='mode') r.mode = e.target.value;
+      else r[field] = e.target.value;
+      saveState();
+    });
+    document.getElementById('recTable').addEventListener('click', (e) => {
+      const id = e.target.getAttribute('data-delrec'); if (!id) return;
+      state.recurs = state.recurs.filter(x=>x.id!==id);
+      saveState();
+    });
+
+    // Daily income
+    document.getElementById('addDInc').addEventListener('click', () => {
+      const d = document.getElementById('dIncDate').value || toISO(new Date());
+      const a = parseNum(document.getElementById('dIncAmt').value);
+      const c = document.getElementById('dIncCat').value.trim();
+      const m = document.getElementById('dIncMemo').value.trim();
+      state.dailyIncome.push({ id: crypto.randomUUID(), date: d, amount: Math.abs(a), category: c, memo: m });
+      saveState();
+      document.getElementById('dIncAmt').value=''; document.getElementById('dIncCat').value=''; document.getElementById('dIncMemo').value='';
+    });
+    document.getElementById('dIncTable').addEventListener('input', (e) => {
+      const id = e.target.dataset.id; const field = e.target.dataset.field;
+      if (!id || !field) return;
+      const r = state.dailyIncome.find(x=>x.id===id); if (!r) return;
+      if (field==='amount') r.amount = parseNum(e.target.value);
+      else r[field] = e.target.value;
+      saveState();
+    });
+    document.getElementById('dIncTable').addEventListener('click', (e) => {
+      const id = e.target.getAttribute('data-deldinc'); if (!id) return;
+      state.dailyIncome = state.dailyIncome.filter(x=>x.id!==id);
+      saveState();
+    });
+
+    // Adjustments
+    document.getElementById('addAdj').addEventListener('click', () => {
+      const d = document.getElementById('adjDate').value || toISO(new Date());
+      const a = parseNum(document.getElementById('adjAmount').value);
+      const m = document.getElementById('adjMemo').value.trim();
+      state.adjustments.push({ id: crypto.randomUUID(), date: d, amount: a, memo: m });
+      saveState();
+      document.getElementById('adjAmount').value=''; document.getElementById('adjMemo').value='';
+    });
+    document.getElementById('adjTable').addEventListener('input', (e) => {
+      const id = e.target.dataset.id; const field = e.target.dataset.field;
+      if (!id || !field) return;
+      const r = state.adjustments.find(x=>x.id===id); if (!r) return;
+      if (field==='amount') r.amount = parseNum(e.target.value);
+      else r[field] = e.target.value;
+      saveState();
+    });
+    document.getElementById('adjTable').addEventListener('click', (e) => {
+      const id = e.target.getAttribute('data-deladj'); if (!id) return;
+      state.adjustments = state.adjustments.filter(x=>x.id!==id);
+      saveState();
+    });
+
+    // Export / Import JSON
+    document.getElementById('exportJSON').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'cashflow_state.json';
+      a.click();
+    });
+    document.getElementById('importJSON').addEventListener('click', () => document.getElementById('importJSONInput').click());
+    document.getElementById('importJSONInput').addEventListener('change', (e) => {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try { state = JSON.parse(reader.result); saveState(); }
+        catch (err) { alert('Invalid JSON'); }
+      };
+      reader.readAsText(file);
+    });
+
+    // Export daily CSV
+    document.getElementById('exportCSV').addEventListener('click', () => {
+      const rows = computeDaily();
+      let csv = 'date,inflows,outflows,net,balance\\n';
+      for (const r of rows) csv += r.date+','+r.inflow.toFixed(2)+','+r.outflow.toFixed(2)+','+r.net.toFixed(2)+','+r.balance.toFixed(2)+'\\n';
+      const blob = new Blob([csv], {type:'text/csv'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'cashflow_daily.csv';
+      a.click();
+    });
+
+    // CSV Import (file)
+    document.getElementById('importCSV').addEventListener('click', () => document.getElementById('importCSVInput').click());
+    document.getElementById('importCSVInput').addEventListener('change', (e) => { handleCSVFile(e.target.files?.[0]); });
+
+    // CSV Import (embedded)
+    const useEmbeddedBtn = document.getElementById('useEmbeddedCSV');
+    if (useEmbeddedBtn) {
+      useEmbeddedBtn.addEventListener('click', () => {
+        if (!EMBEDDED_CSV_B64) return;
+        const bytes = atob(EMBEDDED_CSV_B64);
+        const data = new Uint8Array(bytes.length);
+        for (let i=0;i<bytes.length;i++) data[i] = bytes.charCodeAt(i);
+        const file = new File([data], 'embedded.csv', {type:'text/csv'});
+        handleCSVFile(file);
+      });
+    }
+
+    function handleCSVFile(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => { showCSVMapper(reader.result); };
+      reader.readAsText(file);
+    }
+
+    // Simple CSV parser
+    function parseCSV(text) {
+      const rows = [];
+      const lines = text.replace(/\\r/g,'').split('\\n').filter(Boolean);
+      for (const line of lines) {
+        const cells = [];
+        let cur = '', inQ=false;
+        for (let i=0;i<line.length;i++) {
+          const ch = line[i];
+          if (ch === '\"') {
+            if (inQ && line[i+1] === '\"') { cur+='\"'; i++; }
+            else inQ = !inQ;
+          } else if (ch === ',' && !inQ) { cells.push(cur); cur=''; }
+          else cur += ch;
+        }
+        cells.push(cur);
+        rows.push(cells);
+      }
+      return rows;
+    }
+
+    // Column mapper UI
+    function showCSVMapper(text) {
+      const rows = parseCSV(text);
+      if (!rows.length) return alert('CSV is empty');
+      const headers = rows[0];
+      const hasHeader = headers.every(c => isNaN(parseFloat(c))); // naive
+      const sample = hasHeader ? rows.slice(1, 6) : rows.slice(0,5);
+
+      const modal = document.createElement('div');
+      modal.style.position='fixed'; modal.style.inset='0'; modal.style.background='rgba(0,0,0,0.6)'; modal.style.zIndex='100';
+      const box = document.createElement('div');
+      box.className='card'; box.style.maxWidth='800px'; box.style.margin='10vh auto'; box.style.padding='16px';
+      const headerCells = (hasHeader?headers:rows[0]).map(h=>'<th>'+h+'</th>').join('');
+      const sampleRows = sample.map(r=>'<tr>'+r.map(c=>'<td>'+c+'</td>').join('')+'</tr>').join('');
+      box.innerHTML = '<h3>Map CSV Columns → One-offs</h3>'
+        + '<div class="muted" style="margin-bottom:10px">Choose which columns represent Date, Amount, and Type. If no Type, we\\'ll infer by amount sign or your selection.</div>'
+        + '<div class="row" style="gap:16px; align-items:end;">'
+        +   '<div><label class="small">Date</label><br/><select id="mapDate"></select></div>'
+        +   '<div><label class="small">Amount</label><br/><select id="mapAmount"></select></div>'
+        +   '<div><label class="small">Type</label><br/><select id="mapType"><option value="">(none)</option></select></div>'
+        +   '<div><label class="small">Positive amounts are</label><br/>'
+        +     '<select id="mapSign"><option value="income">Income</option><option value="expense">Expense</option></select>'
+        +   '</div>'
+        +   '<div><label class="small">Category</label><br/><select id="mapCat"><option value="">(none)</option></select></div>'
+        +   '<div><label class="small">Memo</label><br/><select id="mapMemo"><option value="">(none)</option></select></div>'
+        + '</div>'
+        + '<div class="spacer"></div>'
+        + '<div style="max-height:180px; overflow:auto; border:1px solid var(--border); border-radius:10px;">'
+        +   '<table><thead><tr>'+headerCells+'</tr></thead><tbody>'+sampleRows+'</tbody></table>'
+        + '</div>'
+        + '<div class="spacer"></div>'
+        + '<div class="row">'
+        +   '<button class="primary" id="mapApply">Import</button>'
+        +   '<button class="ghost" id="mapCancel">Cancel</button>'
+        + '</div>';
+      modal.appendChild(box); document.body.appendChild(modal);
+
+      const cols = (hasHeader?headers:rows[0]).map((h,i)=>({label:h || ('Col '+(i+1)), idx:i}));
+      function fill(selId, allowEmpty=false) {
+        const sel = box.querySelector('#'+selId);
+        if (allowEmpty) sel.innerHTML = '<option value="">(none)</option>';
+        else sel.innerHTML = '';
+        for (const c of cols) {
+          const opt = document.createElement('option'); opt.value=c.idx; opt.textContent=c.label; sel.appendChild(opt);
+        }
+      }
+      fill('mapDate'); fill('mapAmount'); fill('mapType', true); fill('mapCat', true); fill('mapMemo', true);
+
+      box.querySelector('#mapCancel').onclick = () => modal.remove();
+      box.querySelector('#mapApply').onclick = () => {
+        const cDate = parseInt(box.querySelector('#mapDate').value);
+        const cAmt = parseInt(box.querySelector('#mapAmount').value);
+        const cType = box.querySelector('#mapType').value;
+        const cCat = box.querySelector('#mapCat').value;
+        const cMemo = box.querySelector('#mapMemo').value;
+        const signPos = box.querySelector('#mapSign').value;
+
+        const startIdx = hasHeader ? 1 : 0;
+        let imported = 0;
+        for (let i=startIdx;i<rows.length;i++) {
+          const r = rows[i]; if (!r || r.length===0) continue;
+          const dateStr = (r[cDate]||'').trim(); if (!dateStr) continue;
+          const dt = new Date(dateStr);
+          const iso = isNaN(dt) ? null : toISO(dt);
+          if (!iso) continue;
+          const amtN = parseNum(r[cAmt]);
+          if (!amtN) continue;
+          let type = 'expense';
+          if (cType !== '') {
+            const tVal = String(r[parseInt(cType)]||'').toLowerCase();
+            if (tVal.includes('in')) type='income';
+            else if (tVal.includes('out') || tVal.includes('exp')) type='expense';
+            else type = (signPos==='income' ? (amtN>=0?'income':'expense') : (amtN>=0?'expense':'income'));
+          } else {
+            type = (signPos==='income' ? (amtN>=0?'income':'expense') : (amtN>=0?'expense':'income'));
+          }
+          const amount = Math.abs(amtN);
+          const category = cCat!=='' ? (r[parseInt(cCat)]||'') : '';
+          const memo = cMemo!=='' ? (r[parseInt(cMemo)]||'') : '';
+          state.oneOffs.push({ id: crypto.randomUUID(), date: iso, type, amount, category, memo });
+          imported++;
+        }
+        saveState();
+        alert('Imported ' + imported + ' rows into One-offs.');
+        modal.remove();
+      };
+    }
+
+    // Reset
+    document.getElementById('clearData').addEventListener('click', () => {
+      if (!confirm('This will clear all data stored in your browser for this tool. Continue?')) return;
+      state = structuredClone(defaultState);
+      saveState();
+    });
+
+    // Init defaults
+    if (!state.settings.startDate) state.settings.startDate = "2025-09-18";
+    if (!state.settings.endDate) state.settings.endDate = "2025-12-31";
+
+    // Show embedded CSV button if present
+    if (EMBEDDED_CSV_B64) {
+      const holder = document.getElementById('embeddedHolder');
+    }
+
+    renderAll();
+  </script>
+</body>
+</html>
