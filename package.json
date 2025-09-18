@@ -1,0 +1,21 @@
+{
+  "name": "artec-cashflow-tracker",
+  "version": "1.0.0",
+  "description": "Cash flow forecasting dashboard served via Express and EJS.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "cashflow",
+    "forecast",
+    "express"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "ejs": "^3.1.9",
+    "express": "^4.19.2"
+  }
+}
