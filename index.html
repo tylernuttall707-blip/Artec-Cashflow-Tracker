@@ -401,6 +401,9 @@
     const parseNum = (v) => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
     const toISO = (d) => new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10);
     const clamp = (val, lo, hi) => Math.max(lo, Math.min(hi, val));
+    const clone = window.structuredClone
+      ? window.structuredClone.bind(window)
+      : (obj) => JSON.parse(JSON.stringify(obj));
 
     const LS_KEY = "cashflow_v1";
 
@@ -417,10 +420,10 @@
     function loadState() {
       try {
         const raw = localStorage.getItem(LS_KEY);
-        if (!raw) return structuredClone(defaultState);
+        if (!raw) return clone(defaultState);
         const obj = JSON.parse(raw);
         // ensure all keys exist
-        obj.settings = Object.assign(structuredClone(defaultState.settings), obj.settings||{});
+        obj.settings = Object.assign(clone(defaultState.settings), obj.settings||{});
         obj.oneOffs = obj.oneOffs||[];
         obj.recurs = obj.recurs||[];
         obj.dailyIncome = obj.dailyIncome||[];
@@ -428,7 +431,7 @@
         return obj;
       } catch (e) {
         console.error("Failed to load state", e);
-        return structuredClone(defaultState);
+        return clone(defaultState);
       }
     }
 
@@ -1084,7 +1087,7 @@
     // Reset
     document.getElementById('clearData').addEventListener('click', () => {
       if (!confirm('This will clear all data stored in your browser for this tool. Continue?')) return;
-      state = structuredClone(defaultState);
+      state = clone(defaultState);
       saveState();
     });
 
