@@ -507,8 +507,9 @@
     function renderUpcoming(rows) {
       const tbody = $('#upcomingTable tbody'); tbody.innerHTML = "";
       const todayISO = toISO(new Date());
-      const endDate = toISO(new Date(new Date(todayISO).getTime() + 60*86400000));
-      const view = rows.filter(r => r.date >= todayISO && r.date <= endDate);
+      const todayMidnight = new Date(todayISO + 'T00:00:00');
+      const endISO = toISO(new Date(todayMidnight.getTime() + 60*86400000));
+      const view = rows.filter(r => r.date >= todayISO && r.date <= endISO);
       for (const r of view) {
         const tr = document.createElement('tr');
         tr.innerHTML = '<td>'+r.date+'</td>'
@@ -845,7 +846,9 @@
         for (let i=startIdx;i<rows.length;i++) {
           const r = rows[i]; if (!r || r.length===0) continue;
           const dateStr = (r[cDate]||'').trim(); if (!dateStr) continue;
-          const dt = new Date(dateStr);
+          const dt = /^\d{4}-\d{2}-\d{2}$/.test(dateStr)
+            ? new Date(dateStr + 'T00:00:00')
+            : new Date(dateStr);
           const iso = isNaN(dt) ? null : toISO(dt);
           if (!iso) continue;
           const amtN = parseNum(r[cAmt]);
